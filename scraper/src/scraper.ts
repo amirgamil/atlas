@@ -28,13 +28,62 @@ interface Response {
   };
 }
 
+enum AccountType {
+  EOA,
+  Contract,
+}
+
 class Scraper {
   block: number;
   range: number;
+  accountTypeCache: { [key: string]: AccountType };
 
   constructor(startBlock: number, blockRange: number) {
     this.block = startBlock;
     this.range = blockRange; // size of block range
+    this.accountTypeCache = {};
+  }
+
+  async accountType(addr: string) {
+    if (addr in this.accountTypeCache) {
+      return this.accountTypeCache[addr];
+    }
+
+    const res = await nodefetch(
+      "https://eth-mainnet.alchemyapi.io/v2/ZgihkMdrhmQNZJWJM2TLRNWez_AA5Jzo",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "eth_getCode",
+          params: [addr],
+        }),
+      }
+    );
+
+    const resp = (await res.json()) as any;
+    const type = resp.result === "0x" ? AccountType.EOA : AccountType.Contract;
+    this.accountTypeCache[addr] = type;
+    return type;
+  }
+
+  async setAccountTypes(addrs: Array<string>): Promise<Array<AccountType>> {
+    // Gets account types for all addrs and stores them in the cache
+    const body = addrs.map((addr) => ({
+      jsonrpc: "2.0",
+      method: "eth_getCode",
+      id: 0,
+      params: [addr],
+    }));
+    const res = await nodefetch(
+      "https://eth-mainnet.alchemyapi.io/v2/ZgihkMdrhmQNZJWJM2TLRNWez_AA5Jzo",
+      {
+        method: "POST",
+        body: JSON.stringify(body),
+      }
+    );
+    const results = await res.json();
+    return results.map((r: any) => r.result === "0x");
   }
 
   async next() {
@@ -74,7 +123,7 @@ class Scraper {
                 pageKey: r.result.pageKey,
                 fromBlock: "0x" + this.block.toString(16),
                 toBlock: "0x" + (this.block + this.range - 1).toString(16),
-                category: ["external", "internal", "token"],
+                category: ["external", "internal", "erc20"],
               },
             ],
           }),
@@ -97,12 +146,17 @@ class Scraper {
       );
       try {
         const res = await this.next();
+        const tos = res.map((r) => r.to);
+        const froms = res.map((r) => r.to);
+        await this.setAccountTypes(tos);
+        await this.setAccountTypes(froms);
         console.log(res.length);
         for (let i = 0; i < res.length; i++) {
           await callback(res[i], i);
         }
-      } catch {
+      } catch (err) {
         // this.block + this.range - 1 is greater than the block height
+        console.log(err);
         await delay(5);
       }
     }
@@ -110,9 +164,11 @@ class Scraper {
 }
 
 async function main() {
-  const s = new Scraper(13975360, 1);
+  const s = new Scraper(13975737, 1);
   const session = n4j.driver.session();
-  s.run(async (tx: Transfer, i: Number) => {
+  s.run(async (tx: Transfer, i: number) => {
+    const toType = s.accountTypeCache[tx.to];
+    const fromType = s.accountTypeCache[tx.from];
     await n4j.createTx(session, {
       category: tx.category,
       to: tx.to,
@@ -122,6 +178,8 @@ async function main() {
       asset: tx.asset,
       hash: tx.hash,
       distance: 1,
+      toIsUser: toType === AccountType.EOA,
+      fromIsUser: fromType === AccountType.EOA,
     });
   });
 }
