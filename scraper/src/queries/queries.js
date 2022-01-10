@@ -21,31 +21,3 @@ RETURN friend.addr, friend.distance as dist
 ORDER BY dist DESC
 LIMIT 10
 `;
-
-//mutation
-const createTx = ({ to, from, blockNum, value, asset, hash, distance }) => gql`
-mutation CreateTx {
-  createAccounts(input: {
-    addr: ${from},
-    tx: {
-      connectOrCreate: [{
-        where: {node: {addr: ${to}}
-        onCreate: { node: {
-          addr: ${to},
-        }, edge: {
-          blockNum: ${blockNum}
-          value: ${value}
-          asset: ${asset}
-          hash: ${hash}
-          distance: ${distance}
-        }}
-      }]
-    }
-  }) {
-    info {
-      nodesCreated
-      relationshipsCreated
-    }
-  }
-}
-`;
