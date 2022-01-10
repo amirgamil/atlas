@@ -18,6 +18,7 @@ interface TxI {
     asset: String;
     hash: String;
     distance: Number;
+    method: String;
 }
 
 async function createIndex(session: typeof neo4j.Session) {
@@ -49,7 +50,7 @@ async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
         asset: $asset,
         hash: $hash,
         distance: $distance,
-        timestamp: timestamp()
+        method: $method
     }]->(b)
     RETURN p
     `;
