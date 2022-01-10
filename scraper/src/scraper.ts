@@ -90,6 +90,10 @@ class Scraper {
 
     const r = (await res.json()) as Response;
 
+    if (r.result === undefined) {
+        throw ({code: 'caught up with head'})
+    }
+
     let out = r.result.transfers;
     let pageKey = r.result.pageKey;
 
@@ -135,22 +139,30 @@ class Scraper {
         const filtered = addrs.filter(
           (addr) => !(addr in this.accountTypeCache)
         );
-        console.log("filtered length", filtered.length);
         await this.setAccountTypes(filtered);
-        console.log(res.length);
-        const promises = res.map((v, i) => callback(v, i));
-        await Promise.all(promises);
-      } catch (err) {
-        // this.block + this.range - 1 is greater than the block height
-        console.log(err);
-        await delay(5);
+        const promises = res.map((v, i) => callback(v, i))
+        await Promise.all(promises)
+      } catch (err: any) {
+        if (err?.code === "Neo.TransientError.Transaction.DeadlockDetected") {
+            // no delay for deadlock retry
+
+            // TODO actually fix deadlocks, maybe use batched transactions
+            console.log('hit deadlock')
+            await delay(1);
+        } else if (err?.code === "caught up with head") {
+            // caught up with head of chain, wait a little bit
+            console.log('caught up with head')
+            await delay(5);
+        } else {
+            console.error(err)
+        }
       }
     }
   }
 }
 
 async function main() {
-  const s = new Scraper(13975816, 1);
+  const s = new Scraper(13975940, 1);
   s.run(async (tx: Transfer, i: number) => {
     const session = n4j.driver.session();
     const toType = s.accountTypeCache[tx.to];

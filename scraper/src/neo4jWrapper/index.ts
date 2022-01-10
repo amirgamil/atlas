@@ -53,120 +53,120 @@ const session = driver.session();
 nuke(session)
     .then(() => createIndex(session))
     .then(() => createConstraints(session))
-    .then(() =>
-        createTx(session, {
-            category: "external",
-            from: "0xabc",
-            to: "0xdef",
-            blockNum: "0x000",
-            value: 0.23,
-            asset: "ETH",
-            hash: "0xfff",
-            distance: 1,
-            toIsUser: true,
-            fromIsUser: true,
-        })
-    )
-    .then(() =>
-        createTx(session, {
-            category: "token",
-            from: "0xabc",
-            to: "0x123",
-            blockNum: "0x001",
-            value: 0.5,
-            asset: "ETH",
-            hash: "0xeee",
-            distance: 1,
-            toIsUser: true,
-            fromIsUser: true,
-        })
-    )
-    .then(() =>
-        createTx(session, {
-            category: "external",
-            to: "0xabc",
-            from: "0x423",
-            blockNum: "0x001",
-            value: 0.5,
-            asset: "ETH",
-            hash: "0xeee",
-            distance: 1,
-            toIsUser: true,
-            fromIsUser: true,
-        })
-    )
-    .then(() =>
-        createTx(session, {
-            category: "external",
-            to: "0x204",
-            from: "0x423",
-            blockNum: "0x231",
-            value: 0.5,
-            asset: "ETH",
-            hash: "0xeee",
-            distance: 1,
-            toIsUser: true,
-            fromIsUser: true,
-        })
-    )
-    .then(() =>
-        createTx(session, {
-            category: "token",
-            to: "0x204",
-            from: "0x223",
-            blockNum: "0x191",
-            value: 0.5,
-            asset: "ETH",
-            hash: "0xeee",
-            distance: 1,
-            toIsUser: true,
-            fromIsUser: true,
-        })
-    )
-    .then(() =>
-        createTx(session, {
-            category: "token",
-            to: "0xabc",
-            from: "0x223",
-            blockNum: "0x001",
-            value: 0.5,
-            asset: "ETH",
-            hash: "0xeee",
-            distance: 1,
-            toIsUser: true,
-            fromIsUser: true,
-        })
-    )
-    .then(() =>
-        createTx(session, {
-            category: "external",
-            to: "0xabc",
-            from: "0x323",
-            blockNum: "0x001",
-            value: 0.5,
-            asset: "ETH",
-            hash: "0xeee",
-            distance: 1,
-            toIsUser: true,
-            fromIsUser: true,
-        })
-    )
-    .then(() =>
-        createTx(session, {
-            category: "internal",
-            to: "0x123",
-            from: "0x204",
-            blockNum: "0x001",
-            value: 0.5,
-            asset: "ETH",
-            hash: "0xeee",
-            distance: 1,
-            toIsUser: true,
-            fromIsUser: true,
-        })
-    )
+    // .then(() =>
+    //     createTx(session, {
+    //         category: "external",
+    //         from: "0xabc",
+    //         to: "0xdef",
+    //         blockNum: "0x000",
+    //         value: 0.23,
+    //         asset: "ETH",
+    //         hash: "0xfff",
+    //         distance: 1,
+    //         toIsUser: true,
+    //         fromIsUser: true,
+    //     })
+    // )
+    // .then(() =>
+    //     createTx(session, {
+    //         category: "token",
+    //         from: "0xabc",
+    //         to: "0x123",
+    //         blockNum: "0x001",
+    //         value: 0.5,
+    //         asset: "ETH",
+    //         hash: "0xeee",
+    //         distance: 1,
+    //         toIsUser: true,
+    //         fromIsUser: true,
+    //     })
+    // )
+    // .then(() =>
+    //     createTx(session, {
+    //         category: "external",
+    //         to: "0xabc",
+    //         from: "0x423",
+    //         blockNum: "0x001",
+    //         value: 0.5,
+    //         asset: "ETH",
+    //         hash: "0xeee",
+    //         distance: 1,
+    //         toIsUser: true,
+    //         fromIsUser: true,
+    //     })
+    // )
+    // .then(() =>
+    //     createTx(session, {
+    //         category: "external",
+    //         to: "0x204",
+    //         from: "0x423",
+    //         blockNum: "0x231",
+    //         value: 0.5,
+    //         asset: "ETH",
+    //         hash: "0xeee",
+    //         distance: 1,
+    //         toIsUser: true,
+    //         fromIsUser: true,
+    //     })
+    // )
+    // .then(() =>
+    //     createTx(session, {
+    //         category: "token",
+    //         to: "0x204",
+    //         from: "0x223",
+    //         blockNum: "0x191",
+    //         value: 0.5,
+    //         asset: "ETH",
+    //         hash: "0xeee",
+    //         distance: 1,
+    //         toIsUser: true,
+    //         fromIsUser: true,
+    //     })
+    // )
+    // .then(() =>
+    //     createTx(session, {
+    //         category: "token",
+    //         to: "0xabc",
+    //         from: "0x223",
+    //         blockNum: "0x001",
+    //         value: 0.5,
+    //         asset: "ETH",
+    //         hash: "0xeee",
+    //         distance: 1,
+    //         toIsUser: true,
+    //         fromIsUser: true,
+    //     })
+    // )
+    // .then(() =>
+    //     createTx(session, {
+    //         category: "external",
+    //         to: "0xabc",
+    //         from: "0x323",
+    //         blockNum: "0x001",
+    //         value: 0.5,
+    //         asset: "ETH",
+    //         hash: "0xeee",
+    //         distance: 1,
+    //         toIsUser: true,
+    //         fromIsUser: true,
+    //     })
+    // )
+    // .then(() =>
+    //     createTx(session, {
+    //         category: "internal",
+    //         to: "0x123",
+    //         from: "0x204",
+    //         blockNum: "0x001",
+    //         value: 0.5,
+    //         asset: "ETH",
+    //         hash: "0xeee",
+    //         distance: 1,
+    //         toIsUser: true,
+    //         fromIsUser: true,
+    //     })
+    // )
     .then(() => session.close())
-    .then(() => console.log("finished"));
+    .then(() => console.log("Finished setup of indexes"));
 
 module.exports = {
     session,
