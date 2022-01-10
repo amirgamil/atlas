@@ -159,3 +159,9 @@ nuke(session)
     )
     .then(() => session.close())
     .then(() => console.log("finished"));
+
+module.exports = {
+    session,
+    createTx,
+    driver
+}
