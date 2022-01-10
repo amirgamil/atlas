@@ -60,7 +60,13 @@ class Scraper {
       }
     );
     const results = await res.json();
-    return results.map((r: any) => r.result === "0x");
+    const types = results.map((r: any) =>
+      r.result === "0x" ? AccountType.EOA : AccountType.Contract
+    );
+    types.forEach((t: AccountType, i: number) => {
+      this.accountTypeCache[addrs[i]] = t;
+    });
+    return types;
   }
 
   async next() {
@@ -173,7 +179,7 @@ async function main() {
       toIsUser: toType === AccountType.EOA,
       fromIsUser: fromType === AccountType.EOA,
     });
-    session.close()
+    session.close();
   });
 }
 
