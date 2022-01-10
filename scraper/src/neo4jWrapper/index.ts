@@ -1,27 +1,37 @@
 require("dotenv").config({
-    path: "./scraper/.env",
+    path: "./scraper/src/neo4jWrapper/.env",
 });
 const neo4j = require("neo4j-driver");
-
 const driver = neo4j.driver(
     process.env.NEO4J_URI,
     neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD)
 );
 
-async function createConstraints(session) {
+interface TxI {
+    category: String,
+    to: String,
+    from: String,
+    blockNum: String,
+    value: Number,
+    asset: String,
+    hash: String,
+    distance: Number,
+}
+
+async function createConstraints(session: typeof neo4j.Session) {
     const template = `
     CREATE CONSTRAINT ON (n:Account) ASSERT (n.addr) IS UNIQUE
     `;
     return session.run(template);
 }
 
-async function nuke(session) {
+async function nuke(session: typeof neo4j.Session) {
     return session
         .run("MATCH (a)-[r]->() DELETE a, r")
         .then(() => session.run("MATCH (a) DELETE a"));
 }
 
-async function createTx(session, data) {
+async function createTx(session: typeof neo4j.Session, data: TxI) {
     const template = `
     MERGE (a:Account {addr: $from})
     MERGE (b:Account {addr: $to})
