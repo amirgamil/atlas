@@ -10,12 +10,15 @@ const driver = neo4j.driver(
 interface TxI {
     category: String;
     to: String;
+    toIsUser: Boolean;
     from: String;
+    fromIsUser: Boolean;
     blockNum: String;
     value: Number;
     asset: String;
     hash: String;
     distance: Number;
+    
 }
 
 async function createConstraints(session: typeof neo4j.Session) {
@@ -34,24 +37,11 @@ async function nuke(session: typeof neo4j.Session) {
 //internal: smart contract to smart contract
 //anything else: user to smart contract
 async function createTx(session: typeof neo4j.Session, data: TxI) {
-    // default assumption is user to smart contract
-    let isUserA = true;
-    let isUserB = false;
-    switch (data.category) {
-        case "external":
-            isUserA = true;
-            isUserB = true;
-            break;
-        case "internal":
-            isUserA = false;
-            isUserB = false;
-    }
-
     const template = `
     MERGE (a:Account {addr: $from})
     MERGE (b:Account {addr: $to})
-    SET a.isUser = ${isUserA}
-    SET b.isUser = ${isUserB}
+    SET a.isUser = ${data.fromIsUser}
+    SET b.isUser = ${data.toIsUser}
     CREATE p = (a)-[:To { category: $category, blockNum: $blockNum, value: $value, asset: $asset, hash: $hash, distance: $distance}]->(b)
     RETURN p
     `;
@@ -71,6 +61,8 @@ nuke(session)
             asset: "ETH",
             hash: "0xfff",
             distance: 1,
+            toIsUser: true,
+            fromIsUser: true,
         })
     )
     .then(() =>
@@ -83,6 +75,8 @@ nuke(session)
             asset: "ETH",
             hash: "0xeee",
             distance: 1,
+            toIsUser: true,
+            fromIsUser: true,
         })
     )
     .then(() =>
@@ -95,6 +89,8 @@ nuke(session)
             asset: "ETH",
             hash: "0xeee",
             distance: 1,
+            toIsUser: true,
+            fromIsUser: true,
         })
     )
     .then(() =>
@@ -107,6 +103,8 @@ nuke(session)
             asset: "ETH",
             hash: "0xeee",
             distance: 1,
+            toIsUser: true,
+            fromIsUser: true,
         })
     )
     .then(() =>
@@ -119,6 +117,8 @@ nuke(session)
             asset: "ETH",
             hash: "0xeee",
             distance: 1,
+            toIsUser: true,
+            fromIsUser: true,
         })
     )
     .then(() =>
@@ -131,6 +131,8 @@ nuke(session)
             asset: "ETH",
             hash: "0xeee",
             distance: 1,
+            toIsUser: true,
+            fromIsUser: true,
         })
     )
     .then(() =>
@@ -143,6 +145,8 @@ nuke(session)
             asset: "ETH",
             hash: "0xeee",
             distance: 1,
+            toIsUser: true,
+            fromIsUser: true,
         })
     )
     .then(() =>
@@ -155,6 +159,8 @@ nuke(session)
             asset: "ETH",
             hash: "0xeee",
             distance: 1,
+            toIsUser: true,
+            fromIsUser: true,
         })
     )
     .then(() => session.close())
