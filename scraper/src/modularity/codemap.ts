@@ -161,7 +161,7 @@ const codesMap: Record<number, Code> = {
     0xff: ['SELFDESTRUCT', 5000, 1, 0, false, true]
 };
 
-function opcodes(op: number, full: boolean) {
+export function opcodes(op: number, full: boolean) {
     const code = codesMap[op] ?? ['INVALID', 0, 0, 0, false];
     let opcode = code[0];
 
@@ -186,4 +186,3 @@ function opcodes(op: number, full: boolean) {
     return {name: opcode, fee: code[1], in: code[2], out: code[3], dynamic: code[4], async: code[5], pushData: ""}
 }
 
-module.exports = opcodes

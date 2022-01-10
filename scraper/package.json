@@ -1,11 +1,35 @@
 {
-    "name": "scraper",
+    "name": "mateis",
     "version": "1.0.0",
-    "main": "index.js",
+    "description": "Fire web3 recommendation",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "lint": "eslint .",
+        "start": "ts-node src/neo4jWrapper/index.ts",
+        "scrape": "ts-node src/scraper.ts",
+        "disassemble": "ts-node src/modularity/index.ts"
     },
     "author": "",
     "license": "MIT",
-    "dependencies": {}
+    "dependencies": {
+        "@neo4j/graphql": "^2.5.5",
+        "apollo-server": "^3.6.1",
+        "dotenv": "^10.0.0",
+        "graphql": "^16.2.0",
+        "neo4j-driver": "^4.4.1",
+        "node-fetch": "^2.6.6"
+    },
+    "devDependencies": {
+        "@types/node": "^17.0.8",
+        "@types/node-fetch": "^3.0.3",
+        "eslint": "^8.6.0",
+        "eslint-plugin-react": "^7.28.0",
+        "ts-node": "^10.4.0",
+        "tslib": "^2.2.0",
+        "typescript": "^4.4.4"
+    },
+    "engines": {
+        "node": ">=16.13.0 <17",
+        "npm": ">=8.1.1 <8.2"
+    }
 }

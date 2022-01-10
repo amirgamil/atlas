@@ -1,11 +1,12 @@
-const dotenv = import("dotenv")
+import dotenv from "dotenv";
+import nodefetch from "node-fetch";
+import { Account } from "./neo4jWrapper/index";
+import fs from "fs";
+import { delay } from "./util";
+import { createMultipleTx } from "./neo4jWrapper/index";
 dotenv.config({
     path: "./scraper/.env",
 })
-const nodefetch = require("node-fetch");
-const fs = require("fs");
-const { delay } = require("./util");
-const n4j = require("./neo4jWrapper/index");
 
 interface Transfer {
   blockNum: string;
@@ -92,10 +93,10 @@ class Scraper {
   }
 
   async loadCache() {
-    fs.readFile(__dirname + "/cache.json", (_: any, data: string) => {
+    fs.readFile(__dirname + "/cache.json", (_: Error | null, data: Buffer) => {
       if (data) {
         console.log("loading cache");
-        this.accountTypeCache = JSON.parse(data);
+        this.accountTypeCache = JSON.parse(data.toString());
         console.log(
           "cache loaded of size",
           Object.keys(this.accountTypeCache).length
@@ -105,10 +106,10 @@ class Scraper {
   }
 
   async loadSignatureMap() {
-    fs.readFile(__dirname + "/signatures.json", (_: any, data: string) => {
+    fs.readFile(__dirname + "/signatures.json", (_: Error | null, data: Buffer) => {
       if (data) {
         console.log("loading signature map");
-        this.signatureMap = JSON.parse(data);
+        this.signatureMap = JSON.parse(data.toString());
         console.log(
           "signature map loaded of size",
           Object.keys(this.signatureMap).length
@@ -132,7 +133,7 @@ class Scraper {
         body: JSON.stringify(body),
       }
     );
-    const results = await res.json();
+    const results = await res.json() as Array<any>;
     const types = results.map((r: any) =>
       r.result === "0x" ? AccountType.EOA : AccountType.Contract
     );
@@ -157,7 +158,8 @@ class Scraper {
       }
     );
 
-    const results = await res.json();
+    //This is bad
+    const results = await res.json() as Array<any>;
     const sigs = results.map((r: any) => r.result.input.substring(0, 10));
 
     return sigs;
@@ -286,7 +288,7 @@ class Scraper {
       });
 
       console.log(`inserting ${res.length} blocks`);
-      await n4j.createMultipleTx(res.map(this.mapTxData.bind(this)));
+      await createMultipleTx(res.map(this.mapTxData.bind(this)));
     } catch (err: any) {
       console.log("Error: ", err);
       if (err?.code === "Neo.TransientError.Transaction.DeadlockDetected") {

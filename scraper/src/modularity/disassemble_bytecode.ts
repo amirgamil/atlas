@@ -1,4 +1,4 @@
- import opcodes from "./codemap";
+import { opcodes } from "./codemap";
 
 function hexToIntArray(hexString: string): number[] {
     if (hexString.slice(0, 2) === '0x') {
@@ -16,7 +16,7 @@ function intArrayToHex(ints: number[]): string {
     return `0x${hex.join('')}`
 }
 
-function parseCode(raw: string) {
+export function parseCode(raw: string) {
     const rawbytes = hexToIntArray(raw);
     const code = [];
     for (let i = 0; i < rawbytes.length; i++) {
@@ -40,4 +40,3 @@ function parseCode(raw: string) {
     return code
 }
 
-module.exports = { parseByteCode: parseCode }

@@ -1,10 +1,12 @@
-require("dotenv").config({
-    path: "./scraper/.env",
-})
-const neo4j = require("neo4j-driver");
+import dotenv from "dotenv";
+import neo4j from "neo4j-driver";
+dotenv.config({ path: "src/.env" });
 const driver = neo4j.driver(
-    process.env.NEO4J_URI,
-    neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD)
+    `${process.env.NEO4J_URI}`,
+    neo4j.auth.basic(
+        `${process.env.NEO4J_USER}`,
+        `${process.env.NEO4J_PASSWORD}`
+    )
 );
 
 export interface Account {
@@ -46,7 +48,7 @@ async function nuke(session: typeof neo4j.Session) {
 //external: user to user
 //internal: smart contract to smart contract
 //anything else: user to smart contract
-async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
+export async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
     const template = `
     MERGE (a:Account {addr: $from})
     MERGE (b:Account {addr: $to})
@@ -66,7 +68,7 @@ async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
     return tx.run(template, data);
 }
 
-async function createMultipleTx(data: TxI[]) {
+export async function createMultipleTx(data: TxI[]) {
     const session = driver.session();
     return session
         .writeTransaction((tx: typeof neo4j.Transaction) => {
@@ -76,16 +78,9 @@ async function createMultipleTx(data: TxI[]) {
         .finally(() => session.close());
 }
 
-const session = driver.session();
+export const session = driver.session();
 nuke(session)
     .then(() => createIndex(session))
     .then(() => createConstraints(session))
     .then(() => session.close())
     .then(() => console.log("Finished setup of indexes"));
-
-module.exports = {
-    session,
-    createTx,
-    createMultipleTx,
-    driver,
-};
