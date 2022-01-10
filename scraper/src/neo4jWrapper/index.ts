@@ -7,7 +7,12 @@ const driver = neo4j.driver(
     neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD)
 );
 
-interface TxI {
+export interface Account {
+    address: string;
+    isUser: boolean;
+}
+
+export interface TxI {
     category: String;
     to: String;
     toIsUser: Boolean;
@@ -21,11 +26,15 @@ interface TxI {
 }
 
 async function createIndex(session: typeof neo4j.Session) {
-    return session.run("CREATE INDEX IF NOT EXISTS FOR (n:Account) ON (n.isUser)")
+    return session.run(
+        "CREATE INDEX IF NOT EXISTS FOR (n:Account) ON (n.isUser)"
+    );
 }
 
 async function createConstraints(session: typeof neo4j.Session) {
-    return session.run("CREATE CONSTRAINT IF NOT EXISTS ON (n:Account) ASSERT (n.addr) IS UNIQUE");
+    return session.run(
+        "CREATE CONSTRAINT IF NOT EXISTS ON (n:Account) ASSERT (n.addr) IS UNIQUE"
+    );
 }
 
 async function nuke(session: typeof neo4j.Session) {
@@ -50,10 +59,12 @@ async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
 
 async function createMultipleTx(data: TxI[]) {
     const session = driver.session();
-    return session.writeTransaction((tx: typeof neo4j.Transaction) => {
-        const curriedCreate = (data: TxI) => createTx(tx, data)
-        return Promise.all(data.map(curriedCreate))
-    }).finally(() => session.close())
+    return session
+        .writeTransaction((tx: typeof neo4j.Transaction) => {
+            const curriedCreate = (data: TxI) => createTx(tx, data);
+            return Promise.all(data.map(curriedCreate));
+        })
+        .finally(() => session.close());
 }
 
 const session = driver.session();
@@ -67,5 +78,5 @@ module.exports = {
     session,
     createTx,
     createMultipleTx,
-    driver
-}
+    driver,
+};

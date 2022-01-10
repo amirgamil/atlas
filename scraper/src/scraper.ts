@@ -248,6 +248,16 @@ class Scraper {
     }
 }
 
+//given list of user accounts, computes distance from root user
+async function rankResults(currentUser: Account, listOfUsers: Account[]) {
+    const distanceMetrics = [];
+    for (const similarUser of listOfUsers) {
+        distanceMetrics.push(computeDistance);
+    }
+}
+
+async function computeDistance(userA: string, userB: string) {}
+
 async function launchSession(s: Scraper) {
     s.run();
 }
