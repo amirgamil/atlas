@@ -14,6 +14,7 @@ interface Transfer {
   asset: string;
   category: string;
   rawContract: RawContract;
+  method?: string;
 }
 
 interface RawContract {
@@ -100,7 +101,7 @@ class Scraper {
   }
 
   async loadSignatureMap() {
-    fs.readFile(__dirname + "/cache.json", (_: any, data: string) => {
+    fs.readFile(__dirname + "/signatures.json", (_: any, data: string) => {
       if (data) {
         console.log("loading signature map");
         this.signatureMap = JSON.parse(data);
@@ -230,6 +231,13 @@ class Scraper {
     return out;
   }
 
+  getMethodName(sig: string): string {
+    if (sig in this.signatureMap) {
+      return this.signatureMap[sig].text_signature;
+    }
+    return sig;
+  }
+
   async run() {
     while (true) {
       console.log(
@@ -253,6 +261,7 @@ class Scraper {
       distance: 1,
       toIsUser: toType === AccountType.EOA,
       fromIsUser: fromType === AccountType.EOA,
+      method: tx.method ?? ""
     };
   }
 
@@ -265,8 +274,12 @@ class Scraper {
       const filtered = addrs.filter((addr) => !(addr in this.accountTypeCache));
       await this.setAccountTypes(filtered);
 
+      // Add method names to transactions
       const txs = res.map((r) => r.hash);
       const signatures = await this.getFunctionSignatures(txs);
+      signatures.forEach((s: string, i: number) => {
+        res[i].method = this.getMethodName(s);
+      });
 
       console.log(`inserting ${res.length} blocks`);
       await n4j.createMultipleTx(res.map(this.mapTxData.bind(this)));
