@@ -6,6 +6,7 @@ require("dotenv").config({ path: "./scraper/neo4jWrapper/.env" });
 const typeDefs = gql`
     type Account {
         addr: String!
+        isUser: Boolean!
         tx: [Account!]!
             @relationship(type: "TO", properties: "Tx", direction: OUT)
     }
