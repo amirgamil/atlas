@@ -1,4 +1,5 @@
 const fetch = require("node-fetch");
+const { delay } = require("./util");
 
 /* export interface Transfer {
   blockNum: string;
@@ -26,32 +27,14 @@ export interface Response {
   };
 } */
 
-async function get_erc20_transactions_for_block(blockNum) {
-  const res = await fetch(
-    "https://eth-mainnet.alchemyapi.io/v2/ZgihkMdrhmQNZJWJM2TLRNWez_AA5Jzo",
-    {
-      method: "POST",
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        method: "alchemy_getAssetTransfers",
-        params: [
-          {
-            fromBlock: "0x" + blockNum.toString(16),
-            toBlock: "0x" + (blockNum + 20).toString(16),
-            category: ["erc20"],
-          },
-        ],
-      }),
-    }
-  );
+class Scraper {
+  constructor(startBlock, blockRange) {
+    this.block = startBlock;
+    this.range = blockRange; // size of block range
+  }
 
-  const r = await res.json();
-
-  let out = r.result.transfers;
-  let pageKey = r.result.pageKey;
-
-  while (pageKey != undefined) {
-    const result = await fetch(
+  async next() {
+    const res = await fetch(
       "https://eth-mainnet.alchemyapi.io/v2/ZgihkMdrhmQNZJWJM2TLRNWez_AA5Jzo",
       {
         method: "POST",
@@ -60,25 +43,67 @@ async function get_erc20_transactions_for_block(blockNum) {
           method: "alchemy_getAssetTransfers",
           params: [
             {
-              pageKey: r.result.pageKey,
-              fromBlock: "0x" + blockNum.toString(16),
-              toBlock: "0x" + (blockNum + 20).toString(16),
+              fromBlock: "0x" + this.block.toString(16),
+              toBlock: "0x" + (this.block + this.range - 1).toString(16), // -1 since this is inclusive!
               category: ["erc20"],
             },
           ],
         }),
       }
     );
-    const j = await result.json();
-    out = out.concat(j.result.transfers);
-    pageKey = j.result.pageKey;
+
+    const r = await res.json();
+
+    let out = r.result.transfers;
+    let pageKey = r.result.pageKey;
+
+    while (pageKey != undefined) {
+      const result = await fetch(
+        "https://eth-mainnet.alchemyapi.io/v2/ZgihkMdrhmQNZJWJM2TLRNWez_AA5Jzo",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            method: "alchemy_getAssetTransfers",
+            params: [
+              {
+                pageKey: r.result.pageKey,
+                fromBlock: "0x" + this.block.toString(16),
+                toBlock: "0x" + (this.block + this.range - 1).toString(16),
+                category: ["erc20"],
+              },
+            ],
+          }),
+        }
+      );
+      const j = await result.json();
+      out = out.concat(j.result.transfers);
+      pageKey = j.result.pageKey;
+    }
+
+    this.block = this.block + this.range;
+
+    return out;
   }
 
-  console.log(out);
+  async run() {
+    while (true) {
+      console.log(
+        `Getting blocks ${this.block} to ${this.block + this.range - 1}`
+      );
+      try {
+        const res = await this.next();
+        console.log(res.length);
+      } catch {
+        await delay(10);
+      }
+    }
+  }
 }
 
 async function main() {
-  await get_erc20_transactions_for_block(13973567);
+  const s = new Scraper(13975145, 1);
+  s.run();
 }
 
 main();
