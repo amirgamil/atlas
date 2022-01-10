@@ -21,11 +21,12 @@ interface TxI {
     
 }
 
+async function createIndex(session: typeof neo4j.Session) {
+    return session.run("CREATE INDEX IF NOT EXISTS FOR (n:Account) ON (n.isUser)")
+}
+
 async function createConstraints(session: typeof neo4j.Session) {
-    const template = `
-    CREATE CONSTRAINT ON (n:Account) ASSERT (n.addr) IS UNIQUE
-    `;
-    return session.run(template);
+    return session.run("CREATE CONSTRAINT IF NOT EXISTS ON (n:Account) ASSERT (n.addr) IS UNIQUE");
 }
 
 async function nuke(session: typeof neo4j.Session) {
@@ -50,7 +51,8 @@ async function createTx(session: typeof neo4j.Session, data: TxI) {
 
 const session = driver.session();
 nuke(session)
-    // .then(() => createConstraints(session))
+    .then(() => createIndex(session))
+    .then(() => createConstraints(session))
     .then(() =>
         createTx(session, {
             category: "external",
