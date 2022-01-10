@@ -12,7 +12,7 @@
     "@neo4j/graphql": "^2.5.5",
     "apollo-server": "^3.6.1",
     "dotenv": "^10.0.0",
-    "graphql": "^15.5.1",
+    "graphql": "^16.2.0",
     "neo4j-driver": "^4.4.1"
   }
 }
