@@ -60,7 +60,13 @@ class Scraper {
       }
     );
     const results = await res.json();
-    return results.map((r: any) => r.result === "0x");
+    const types = results.map((r: any) =>
+      r.result === "0x" ? AccountType.EOA : AccountType.Contract
+    );
+    types.forEach((t: AccountType, i: number) => {
+      this.accountTypeCache[addrs[i]] = t;
+    });
+    return types;
   }
 
   async next() {
@@ -132,8 +138,8 @@ class Scraper {
         console.log("filtered length", filtered.length);
         await this.setAccountTypes(filtered);
         console.log(res.length);
-        const promises = res.map((v, i) => callback(v, i))
-        await Promise.all(promises)
+        const promises = res.map((v, i) => callback(v, i));
+        await Promise.all(promises);
       } catch (err) {
         // this.block + this.range - 1 is greater than the block height
         console.log(err);
@@ -161,7 +167,7 @@ async function main() {
       toIsUser: toType === AccountType.EOA,
       fromIsUser: fromType === AccountType.EOA,
     });
-    session.close()
+    session.close();
   });
 }
 
