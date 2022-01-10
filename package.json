@@ -1,5 +1,5 @@
 {
-  "name": "mateis",
+  "name": "metis",
   "version": "1.0.0",
   "description": "Fire web3 recommendation",
   "main": "index.js",
@@ -7,5 +7,12 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@neo4j/graphql": "^2.5.5",
+    "apollo-server": "^3.6.1",
+    "dotenv": "^10.0.0",
+    "graphql": "^15.5.1",
+    "neo4j-driver": "^4.4.1"
+  }
 }
