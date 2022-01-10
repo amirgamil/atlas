@@ -42,7 +42,15 @@ async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
     MERGE (b:Account {addr: $to})
     SET a.isUser = ${data.fromIsUser}
     SET b.isUser = ${data.toIsUser}
-    CREATE p = (a)-[:To { category: $category, blockNum: $blockNum, value: $value, asset: $asset, hash: $hash, distance: $distance}]->(b)
+    CREATE p = (a)-[:To {
+        category: $category,
+        blockNum: $blockNum,
+        value: $value,
+        asset: $asset,
+        hash: $hash,
+        distance: $distance,
+        timestamp: timestamp()
+    }]->(b)
     RETURN p
     `;
     return tx.run(template, data);
