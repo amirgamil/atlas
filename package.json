@@ -1,18 +1,23 @@
 {
-  "name": "mateis",
-  "version": "1.0.0",
-  "description": "Fire web3 recommendation",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "@neo4j/graphql": "^2.5.5",
-    "apollo-server": "^3.6.1",
-    "dotenv": "^10.0.0",
-    "graphql": "^16.2.0",
-    "neo4j-driver": "^4.4.1"
-  }
+    "name": "mateis",
+    "version": "1.0.0",
+    "description": "Fire web3 recommendation",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "lint": "eslint ."
+    },
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "@neo4j/graphql": "^2.5.5",
+        "apollo-server": "^3.6.1",
+        "dotenv": "^10.0.0",
+        "graphql": "^16.2.0",
+        "neo4j-driver": "^4.4.1"
+    },
+    "devDependencies": {
+        "eslint": "^8.6.0",
+        "eslint-plugin-react": "^7.28.0"
+    }
 }
