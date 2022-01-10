@@ -1,84 +1,52 @@
-const { gql, ApolloServer } = require("apollo-server");
-const { Neo4jGraphQL } = require("@neo4j/graphql");
-const neo4j = require("neo4j-driver");
 require("dotenv").config();
+const neo4j = require('neo4j-driver')
 
-const typeDefs = gql`
-type Account {
-  addr: String!
-  tx: [Account!]! @relationship(type: "TO", properties: "Tx", direction: OUT)
+const driver = neo4j.driver(process.env.NEO4J_URI, neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD))
+
+async function createConstraints(session) {
+    const template = `
+    CREATE CONSTRAINT ON (n:Account) ASSERT (n.addr) IS UNIQUE
+    `
+    return session.run(template)
 }
 
-interface Tx @relationshipProperties {
-  blockNum: String!
-  value: Float
-  asset: String
-  hash: String!
-  distance: Float!
+async function nuke(session) {
+    return session.run("MATCH (a)-[r]->() DELETE a, r")
+        .then(() => session.run("MATCH (a) DELETE a"))
 }
-`;
 
-// const insertTxAndAccount = gql`
-// mutation InsertTxAndAccount {
-//   createMovies(input: [
-//     {
-//       title: "Forrest Gump"
-//       released: 1994
-//       director: {
-//         create: {
-//           node: {
-//             name: "Robert Zemeckis"
-//             born: 1951
-//           }
-//         }
-//       }
-//       actors: {
-//         create: [
-//           {
-//             node: {
-//               name: "Tom Hanks"
-//               born: 1956
-//             }
-//             edge: {
-//               roles: ["Forrest"]
-//             }
-//           }
-//         ]
-//       }
-//     }
-//   ]) {
-//     movies {
-//       title
-//       released
-//       director {
-//         name
-//         born
-//       }
-//       actorsConnection {
-//         edges {
-//           roles
-//           node {
-//             name
-//             born
-//           }
-//         }
-//       }
-//     }
-//   }
-// }
-// `
+async function createTx(session, data) {
+    const template = `
+    MERGE (a:Account {addr: $from})
+    MERGE (b:Account {addr: $to})
+    CREATE p = (a)-[:To { category: $category, blockNum: $blockNum, value: $value, asset: $asset, hash: $hash, distance: $distance}]->(b)
+    RETURN p
+    `
+    return session.run(template, data)
+}
 
-const driver = neo4j.driver(
-  process.env.NEO4J_URI,
-  neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD)
-);
-
-const neoSchema = new Neo4jGraphQL({ typeDefs, driver });
-
-const server = new ApolloServer({
-  schema: neoSchema.schema,
-});
-
-server.listen().then(({ url }) => {
-  console.log(`GraphQL server ready on ${url}`);
-});
+const session = driver.session()
+nuke(session)
+    // .then(() => createConstraints(session))
+    .then(() => createTx(session, {
+        category: "external",
+        to: "0xabc",
+        from: "0xdef",
+        blockNum: "0x000",
+        value: 0.23,
+        asset: "ETH",
+        hash: "0xfff",
+        distance: 1,
+    }))
+    .then(() => createTx(session, {
+        category: "external",
+        to: "0xabc",
+        from: "0x123",
+        blockNum: "0x001",
+        value: 0.5,
+        asset: "ETH",
+        hash: "0xeee",
+        distance: 1,
+    }))
+    .then(() => session.close())
+    .then(() => console.log("finished"))
