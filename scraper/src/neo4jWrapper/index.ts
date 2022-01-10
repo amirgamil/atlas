@@ -1,6 +1,6 @@
 require("dotenv").config({
-    path: "./scraper/src/neo4jWrapper/.env",
-});
+    path: "./scraper/.env",
+})
 const neo4j = require("neo4j-driver");
 const driver = neo4j.driver(
     process.env.NEO4J_URI,

@@ -1,3 +1,7 @@
+const dotenv = import("dotenv")
+dotenv.config({
+    path: "./scraper/.env",
+})
 const nodefetch = require("node-fetch");
 const fs = require("fs");
 const { delay } = require("./util");

@@ -1,8 +1,7 @@
-const nodefetch = require("node-fetch");
+import nodefetch from "node-fetch";
+export const delay = (s: number) => new Promise((resolve) => setTimeout(resolve, s * 1000));
 
-const delay = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
-
-const currBlock = async () => {
+export const currBlock = async () => {
   const res = await nodefetch(
     "https://eth-mainnet.alchemyapi.io/v2/ZgihkMdrhmQNZJWJM2TLRNWez_AA5Jzo",
     {
@@ -14,15 +13,9 @@ const currBlock = async () => {
   return Number(b.result);
 };
 
-const blockSecondsAgo = async (s) => {
+export const blockSecondsAgo = async (s: number) => {
   // APPROXIMATE block number from s seconds ago
   // Just uses 13.1 as the average block time, so will be off by a bit
   const curr = await currBlock();
   return Math.round(curr - s / 13.1);
-};
-
-module.exports = {
-  delay,
-  currBlock,
-  blockSecondsAgo,
 };
