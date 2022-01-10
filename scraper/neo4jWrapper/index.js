@@ -4,19 +4,69 @@ const neo4j = require("neo4j-driver");
 require("dotenv").config();
 
 const typeDefs = gql`
-  type Account {
-    addr: String!
-    tx: [Account] @relationship(type: "TO", properties: "Tx")
-  }
-  
-  interface Tx @relationshipProperties {
-    blockNum: String!
-    value: Float
-    asset: String
-    hash: String!
-    distance: Float!
-  }
+type Account {
+  addr: String!
+  tx: [Account!]! @relationship(type: "TO", properties: "Tx", direction: OUT)
+}
+
+interface Tx @relationshipProperties {
+  blockNum: String!
+  value: Float
+  asset: String
+  hash: String!
+  distance: Float!
+}
 `;
+
+// const insertTxAndAccount = gql`
+// mutation InsertTxAndAccount {
+//   createMovies(input: [
+//     {
+//       title: "Forrest Gump"
+//       released: 1994
+//       director: {
+//         create: {
+//           node: {
+//             name: "Robert Zemeckis"
+//             born: 1951
+//           }
+//         }
+//       }
+//       actors: {
+//         create: [
+//           {
+//             node: {
+//               name: "Tom Hanks"
+//               born: 1956
+//             }
+//             edge: {
+//               roles: ["Forrest"]
+//             }
+//           }
+//         ]
+//       }
+//     }
+//   ]) {
+//     movies {
+//       title
+//       released
+//       director {
+//         name
+//         born
+//       }
+//       actorsConnection {
+//         edges {
+//           roles
+//           node {
+//             name
+//             born
+//           }
+//         }
+//       }
+//     }
+//   }
+// }
+// `
 
 const driver = neo4j.driver(
   process.env.NEO4J_URI,
