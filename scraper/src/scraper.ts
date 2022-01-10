@@ -147,9 +147,13 @@ class Scraper {
       try {
         const res = await this.next();
         const tos = res.map((r) => r.to);
-        const froms = res.map((r) => r.to);
-        await this.setAccountTypes(tos);
-        await this.setAccountTypes(froms);
+        const froms = res.map((r) => r.from);
+        const addrs = tos.concat(froms);
+        const filtered = addrs.filter(
+          (addr) => !(addr in this.accountTypeCache)
+        );
+        console.log("filtered length", filtered.length);
+        await this.setAccountTypes(filtered);
         console.log(res.length);
         for (let i = 0; i < res.length; i++) {
           await callback(res[i], i);
@@ -164,7 +168,7 @@ class Scraper {
 }
 
 async function main() {
-  const s = new Scraper(13975737, 1);
+  const s = new Scraper(13975773, 1);
   const session = n4j.driver.session();
   s.run(async (tx: Transfer, i: number) => {
     const toType = s.accountTypeCache[tx.to];
