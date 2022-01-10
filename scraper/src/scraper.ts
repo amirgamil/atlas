@@ -189,16 +189,33 @@ class Scraper {
         return out;
     }
 
-    async run(callback: Function) {
+    async run() {
         while (true) {
             console.log(
                 `Getting blocks ${this.block} to ${this.block + this.range - 1}`
             );
-            await this.executeOnce(callback);
+            await this.executeOnce();
         }
     }
 
-    async executeOnce(callback: Function) {
+    mapTxData(tx: Transfer) {
+        const toType = this.accountTypeCache[tx.to];
+        const fromType = this.accountTypeCache[tx.from];
+        return {
+            category: tx.category,
+            to: tx.to,
+            from: tx.from,
+            blockNum: tx.blockNum,
+            value: tx.value,
+            asset: tx.asset,
+            hash: tx.hash,
+            distance: 1,
+            toIsUser: toType === AccountType.EOA,
+            fromIsUser: fromType === AccountType.EOA,
+        }
+    }
+
+    async executeOnce() {
         try {
             const res = await this.next();
             const tos = res.map((r) => r.to);
@@ -208,8 +225,8 @@ class Scraper {
                 (addr) => !(addr in this.accountTypeCache)
             );
             await this.setAccountTypes(filtered);
-            const promises = res.map((v, i) => callback(v, i));
-            await Promise.all(promises);
+            console.log(`inserting ${res.length} blocks`)
+            await n4j.createMultipleTx(res.map(this.mapTxData.bind(this)))
         } catch (err: any) {
             console.log("Error: ", err);
             if (
@@ -231,35 +248,14 @@ class Scraper {
     }
 }
 
-const commitTx = (s: Scraper): Function => {
-    return async (tx: Transfer, i: number) => {
-        const session = n4j.driver.session();
-        const toType = s.accountTypeCache[tx.to];
-        const fromType = s.accountTypeCache[tx.from];
-        await n4j.createTx(session, {
-            category: tx.category,
-            to: tx.to,
-            from: tx.from,
-            blockNum: tx.blockNum,
-            value: tx.value,
-            asset: tx.asset,
-            hash: tx.hash,
-            distance: 1,
-            toIsUser: toType === AccountType.EOA,
-            fromIsUser: fromType === AccountType.EOA,
-        });
-        session.close();
-    };
-};
-
 async function launchSession(s: Scraper) {
-    s.run(commitTx(s));
+    s.run();
 }
 
-async function fetchHistoricalDataForUser(address: string) {
-    const s = new Scraper(0, -1, address);
-    s.executeOnce(commitTx(s));
-}
+// async function fetchHistoricalDataForUser(address: string) {
+//     const s = new Scraper(0, -1, address);
+//     s.executeOnce(commitTx(s));
+// }
 
 async function main() {
     const s = new Scraper(13976050, 1);
