@@ -1,16 +1,13 @@
-import nodefetch from "node-fetch";
+import axios from "axios";
 export const delay = (s: number) =>
     new Promise((resolve) => setTimeout(resolve, s * 1000));
 
 export const currBlock = async () => {
-    const res = await nodefetch(
+    const res = await axios.post(
         "https://eth-mainnet.alchemyapi.io/v2/ZgihkMdrhmQNZJWJM2TLRNWez_AA5Jzo",
-        {
-            method: "POST",
-            body: '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":0}',
-        }
+        '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":0}'
     );
-    const b = (await res.json()) as any;
+    const b = res.data as any;
     return Number(b.result);
 };
 

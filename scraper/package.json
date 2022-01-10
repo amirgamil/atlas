@@ -6,7 +6,7 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "lint": "eslint .",
         "start": "ts-node src/neo4jWrapper/index.ts",
-        "scrape": "ts-node src/scraper.ts",
+        "scrape": "ts-node src/scraper/scraper.ts",
         "disassemble": "ts-node src/modularity/index.ts"
     },
     "author": "",
@@ -14,14 +14,13 @@
     "dependencies": {
         "@neo4j/graphql": "^2.5.5",
         "apollo-server": "^3.6.1",
+        "axios": "^0.24.0",
         "dotenv": "^10.0.0",
         "graphql": "^16.2.0",
-        "neo4j-driver": "^4.4.1",
-        "node-fetch": "^2.6.6"
+        "neo4j-driver": "^4.4.1"
     },
     "devDependencies": {
         "@types/node": "^17.0.8",
-        "@types/node-fetch": "^3.0.3",
         "eslint": "^8.6.0",
         "eslint-plugin-react": "^7.28.0",
         "ts-node": "^10.4.0",

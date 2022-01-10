@@ -1,4 +1,4 @@
-import nodefetch from "node-fetch";
+import axios from "axios";
 import { parseCode } from "./disassemble_bytecode";
 import dotenv from "dotenv";
 dotenv.config({
@@ -12,13 +12,10 @@ export async function getByteCode(address: string) {
         id: 0,
         params: [address],
     };
-    const res = await nodefetch(
+    const res = await axios.post(
         `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
-        {
-            method: "POST",
-            body: JSON.stringify(body),
-        }
+        body
     );
-    const json = (await res.json()) as any;
+    const json = res.data as any;
     return parseCode(json.result);
 }
