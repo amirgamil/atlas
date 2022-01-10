@@ -256,7 +256,9 @@ async function rankResults(currentUser: Account, listOfUsers: Account[]) {
     }
 }
 
-async function computeDistance(userA: string, userB: string) {}
+async function computeDistance(userA: Account, userB: Account) {
+    await fetch("");
+}
 
 async function launchSession(s: Scraper) {
     s.run();
