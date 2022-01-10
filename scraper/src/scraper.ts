@@ -117,6 +117,27 @@ class Scraper {
         return types;
     }
 
+    async getFunctionSignatures(txs: Array<string>): Promise<Array<string>> {
+        const body = txs.map((tx) => ({
+            jsonrpc: "2.0",
+            method: "eth_getTransactionByHash",
+            id: 0,
+            params: [tx],
+        }));
+        const res = await nodefetch(
+            `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
+            {
+                method: "POST",
+                body: JSON.stringify(body),
+            }
+        );
+
+        const results = await res.json();
+        const sigs = results.map((r: any) => r.result.input.substring(0, 10));
+
+        return sigs;
+    }
+
     async next() {
         const payload: Payload = {
             jsonrpc: "2.0",
