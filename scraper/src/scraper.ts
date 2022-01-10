@@ -54,7 +54,7 @@ class Scraper {
     range: number;
     lastSave: number;
     saveInterval: number;
-    accountTypeCache: { [key: string]: AccountType };
+    accountTypeCache: Record<string, AccountType>;
 
     constructor(startBlock: number, blockRange: number, fromAddress?: string) {
         this.block = startBlock;
