@@ -44,29 +44,6 @@ class Scraper {
     this.accountTypeCache = {};
   }
 
-  async accountType(addr: string) {
-    if (addr in this.accountTypeCache) {
-      return this.accountTypeCache[addr];
-    }
-
-    const res = await nodefetch(
-      "https://eth-mainnet.alchemyapi.io/v2/ZgihkMdrhmQNZJWJM2TLRNWez_AA5Jzo",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          method: "eth_getCode",
-          params: [addr],
-        }),
-      }
-    );
-
-    const resp = (await res.json()) as any;
-    const type = resp.result === "0x" ? AccountType.EOA : AccountType.Contract;
-    this.accountTypeCache[addr] = type;
-    return type;
-  }
-
   async setAccountTypes(addrs: Array<string>): Promise<Array<AccountType>> {
     // Gets account types for all addrs and stores them in the cache
     const body = addrs.map((addr) => ({
@@ -123,7 +100,7 @@ class Scraper {
                 pageKey: r.result.pageKey,
                 fromBlock: "0x" + this.block.toString(16),
                 toBlock: "0x" + (this.block + this.range - 1).toString(16),
-                category: ["external", "internal", "erc20"],
+                category: ["external", "internal", "token"],
               },
             ],
           }),
@@ -155,9 +132,8 @@ class Scraper {
         console.log("filtered length", filtered.length);
         await this.setAccountTypes(filtered);
         console.log(res.length);
-        for (let i = 0; i < res.length; i++) {
-          await callback(res[i], i);
-        }
+        const promises = res.map((v, i) => callback(v, i))
+        await Promise.all(promises)
       } catch (err) {
         // this.block + this.range - 1 is greater than the block height
         console.log(err);
@@ -168,9 +144,9 @@ class Scraper {
 }
 
 async function main() {
-  const s = new Scraper(13975773, 1);
-  const session = n4j.driver.session();
+  const s = new Scraper(13975816, 1);
   s.run(async (tx: Transfer, i: number) => {
+    const session = n4j.driver.session();
     const toType = s.accountTypeCache[tx.to];
     const fromType = s.accountTypeCache[tx.from];
     await n4j.createTx(session, {
@@ -185,6 +161,7 @@ async function main() {
       toIsUser: toType === AccountType.EOA,
       fromIsUser: fromType === AccountType.EOA,
     });
+    session.close()
   });
 }
 

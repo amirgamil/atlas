@@ -6,7 +6,8 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "lint": "eslint .",
-        "start": "ts-node scraper/src/neo4jWrapper/index.ts"
+        "start": "ts-node scraper/src/neo4jWrapper/index.ts",
+        "scrape": "ts-node scraper/src/scraper.ts"
     },
     "author": "",
     "license": "MIT",
