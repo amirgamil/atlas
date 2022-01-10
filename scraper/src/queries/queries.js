@@ -16,7 +16,7 @@ RETURN contract`;
 //get Top 10 accounts sorted by distance
 //friend = someone who interacted with the same smart contract account you interacted with
 `MATCH (acc:Account {addr: '${someAddress}'})-[:To]->(child:Account {isUser: false})<-[:To]-(friend:Account {isUser: true})
-WHERE acc <> friend
+WHERE NOT (acc)-[:To]->(contract) 
 RETURN friend.addr, friend.distance as dist 
 ORDER BY dist DESC
 LIMIT 10
