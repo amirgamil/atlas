@@ -1,4 +1,5 @@
 const nodefetch = require("node-fetch");
+const fs = require("fs");
 const { delay } = require("./util");
 const n4j = require("./neo4jWrapper/index");
 
@@ -36,12 +37,43 @@ enum AccountType {
 class Scraper {
   block: number;
   range: number;
+  lastSave: number;
+  saveInterval: number;
   accountTypeCache: { [key: string]: AccountType };
 
   constructor(startBlock: number, blockRange: number) {
     this.block = startBlock;
     this.range = blockRange; // size of block range
     this.accountTypeCache = {};
+    this.lastSave = 0;
+    this.saveInterval = blockRange * 10;
+  }
+
+  async saveCache() {
+    console.log(
+      "saving cache of size",
+      Object.keys(this.accountTypeCache).length
+    );
+    fs.writeFile(
+      __dirname + "/cache.json",
+      JSON.stringify(this.accountTypeCache),
+      (err: any) => {
+        if (err) console.log(err);
+      }
+    );
+  }
+
+  async loadCache() {
+    fs.readFile(__dirname + "/cache.json", (_: any, data: string) => {
+      if (data) {
+        console.log("loading cache");
+        this.accountTypeCache = JSON.parse(data);
+        console.log(
+          "cache loaded of size",
+          Object.keys(this.accountTypeCache).length
+        );
+      }
+    });
   }
 
   async setAccountTypes(addrs: Array<string>): Promise<Array<AccountType>> {
@@ -91,7 +123,7 @@ class Scraper {
     const r = (await res.json()) as Response;
 
     if (r.result === undefined) {
-        throw ({code: 'caught up with head'})
+      throw { code: "caught up with head" };
     }
 
     let out = r.result.transfers;
@@ -140,21 +172,25 @@ class Scraper {
           (addr) => !(addr in this.accountTypeCache)
         );
         await this.setAccountTypes(filtered);
-        const promises = res.map((v, i) => callback(v, i))
-        await Promise.all(promises)
+        const promises = res.map((v, i) => callback(v, i));
+        await Promise.all(promises);
+        if (this.block > this.lastSave + this.saveInterval) {
+          this.saveCache();
+          this.lastSave = this.block;
+        }
       } catch (err: any) {
         if (err?.code === "Neo.TransientError.Transaction.DeadlockDetected") {
-            // no delay for deadlock retry
+          // no delay for deadlock retry
 
-            // TODO actually fix deadlocks, maybe use batched transactions
-            console.log('hit deadlock')
-            await delay(1);
+          // TODO actually fix deadlocks, maybe use batched transactions
+          console.log("hit deadlock");
+          await delay(1);
         } else if (err?.code === "caught up with head") {
-            // caught up with head of chain, wait a little bit
-            console.log('caught up with head')
-            await delay(5);
+          // caught up with head of chain, wait a little bit
+          console.log("caught up with head");
+          await delay(5);
         } else {
-            console.error(err)
+          console.error(err);
         }
       }
     }
@@ -162,7 +198,8 @@ class Scraper {
 }
 
 async function main() {
-  const s = new Scraper(13975940, 1);
+  const s = new Scraper(13976050, 1);
+  s.loadCache();
   s.run(async (tx: Transfer, i: number) => {
     const session = n4j.driver.session();
     const toType = s.accountTypeCache[tx.to];
