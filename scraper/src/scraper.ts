@@ -212,7 +212,7 @@ class Scraper {
             distance: 1,
             toIsUser: toType === AccountType.EOA,
             fromIsUser: fromType === AccountType.EOA,
-        }
+        };
     }
 
     async executeOnce() {
@@ -225,8 +225,8 @@ class Scraper {
                 (addr) => !(addr in this.accountTypeCache)
             );
             await this.setAccountTypes(filtered);
-            console.log(`inserting ${res.length} blocks`)
-            await n4j.createMultipleTx(res.map(this.mapTxData.bind(this)))
+            console.log(`inserting ${res.length} blocks`);
+            await n4j.createMultipleTx(res.map(this.mapTxData.bind(this)));
         } catch (err: any) {
             console.log("Error: ", err);
             if (
@@ -252,10 +252,10 @@ async function launchSession(s: Scraper) {
     s.run();
 }
 
-// async function fetchHistoricalDataForUser(address: string) {
-//     const s = new Scraper(0, -1, address);
-//     s.executeOnce(commitTx(s));
-// }
+async function fetchHistoricalDataForUser(address: string) {
+    const s = new Scraper(0, -1, address);
+    s.executeOnce();
+}
 
 async function main() {
     const s = new Scraper(13976050, 1);
