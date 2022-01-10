@@ -6,7 +6,7 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "lint": "eslint .",
-        "start": "node scraper/neo4jWrapper/index.js"
+        "start": "ts-node scraper/src/neo4jWrapper/index.ts"
     },
     "author": "",
     "license": "MIT",
@@ -18,7 +18,10 @@
         "neo4j-driver": "^4.4.1"
     },
     "devDependencies": {
+        "@types/node": "^17.0.8",
         "eslint": "^8.6.0",
-        "eslint-plugin-react": "^7.28.0"
+        "eslint-plugin-react": "^7.28.0",
+        "ts-node": "^10.4.0",
+        "tslib": "^2.2.0"
     }
 }
