@@ -1,4 +1,5 @@
 const nodefetch = require("node-fetch");
+const fs = require("fs");
 const { delay } = require("./util");
 const n4j = require("./neo4jWrapper/index");
 
@@ -51,6 +52,8 @@ class Scraper {
     private readonly fromAddress: string | undefined;
     block: number;
     range: number;
+    lastSave: number;
+    saveInterval: number;
     accountTypeCache: { [key: string]: AccountType };
 
     constructor(startBlock: number, blockRange: number, fromAddress?: string) {
@@ -58,6 +61,35 @@ class Scraper {
         this.range = blockRange; // size of block range
         this.accountTypeCache = {};
         this.fromAddress = fromAddress;
+        this.lastSave = 0;
+        this.saveInterval = blockRange * 10;
+    }
+
+    async saveCache() {
+        console.log(
+            "saving cache of size",
+            Object.keys(this.accountTypeCache).length
+        );
+        fs.writeFile(
+            __dirname + "/cache.json",
+            JSON.stringify(this.accountTypeCache),
+            (err: any) => {
+                if (err) console.log(err);
+            }
+        );
+    }
+
+    async loadCache() {
+        fs.readFile(__dirname + "/cache.json", (_: any, data: string) => {
+            if (data) {
+                console.log("loading cache");
+                this.accountTypeCache = JSON.parse(data);
+                console.log(
+                    "cache loaded of size",
+                    Object.keys(this.accountTypeCache).length
+                );
+            }
+        });
     }
 
     async setAccountTypes(addrs: Array<string>): Promise<Array<AccountType>> {
@@ -231,6 +263,7 @@ async function fetchHistoricalDataForUser(address: string) {
 
 async function main() {
     const s = new Scraper(13976050, 1);
+    s.loadCache();
     await launchSession(s);
 }
 
