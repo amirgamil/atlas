@@ -34,22 +34,25 @@ async function nuke(session: typeof neo4j.Session) {
 //internal: smart contract to smart contract
 //anything else: user to smart contract
 async function createTx(session: typeof neo4j.Session, data: TxI) {
-    let isUserA = false;
+    // default assumption is user to smart contract
+    let isUserA = true;
     let isUserB = false;
-    if (data.category === "external") {
-        isUserA = true;
-        isUserB = true;
-    } else if (data.category === "internal") {
-        isUserA = false;
-        isUserB = false;
-    } else {
-        isUserA = true;
-        isUserB = false;
+    switch (data.category) {
+        case "external":
+            isUserA = true;
+            isUserB = true;
+            break;
+        case "internal":
+            isUserA = false;
+            isUserB = false;
     }
+
     const template = `
-    MERGE (a:Account {addr: $from, isUser: ${isUserA}})
-    MERGE (b:Account {addr: $to, isUser: ${isUserB}})
-    CREATE p = (a)-[:To { category: $category, isUserA: ${isUserA}, isUserB: ${isUserB}, blockNum: $blockNum, value: $value, asset: $asset, hash: $hash, distance: $distance}]->(b)
+    MERGE (a:Account {addr: $from})
+    MERGE (b:Account {addr: $to})
+    SET a.isUser = ${isUserA}
+    SET b.isUser = ${isUserB}
+    CREATE p = (a)-[:To { category: $category, blockNum: $blockNum, value: $value, asset: $asset, hash: $hash, distance: $distance}]->(b)
     RETURN p
     `;
     return session.run(template, data);
@@ -72,7 +75,7 @@ nuke(session)
     )
     .then(() =>
         createTx(session, {
-            category: "external",
+            category: "token",
             from: "0xabc",
             to: "0x123",
             blockNum: "0x001",
@@ -108,7 +111,7 @@ nuke(session)
     )
     .then(() =>
         createTx(session, {
-            category: "data",
+            category: "token",
             to: "0x204",
             from: "0x223",
             blockNum: "0x191",
@@ -120,7 +123,7 @@ nuke(session)
     )
     .then(() =>
         createTx(session, {
-            category: "data",
+            category: "token",
             to: "0xabc",
             from: "0x223",
             blockNum: "0x001",
@@ -135,6 +138,18 @@ nuke(session)
             category: "external",
             to: "0xabc",
             from: "0x323",
+            blockNum: "0x001",
+            value: 0.5,
+            asset: "ETH",
+            hash: "0xeee",
+            distance: 1,
+        })
+    )
+    .then(() =>
+        createTx(session, {
+            category: "internal",
+            to: "0x123",
+            from: "0x204",
             blockNum: "0x001",
             value: 0.5,
             asset: "ETH",
