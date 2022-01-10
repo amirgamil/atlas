@@ -268,4 +268,4 @@ async function main() {
 }
 
 main();
-// fetchHistoricalDataForUser("0x926B47C42Ce6BC92242c080CF8fAFEd34a164017");
+// fetchHistoricalDataForUser("some address");
