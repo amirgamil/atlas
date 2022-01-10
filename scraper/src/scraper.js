@@ -95,6 +95,7 @@ class Scraper {
         const res = await this.next();
         console.log(res.length);
       } catch {
+        // this.block + this.range - 1 is greater than the block height
         await delay(10);
       }
     }
