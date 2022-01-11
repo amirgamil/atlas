@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import Web3Modal from "web3modal";
 import { providers, Signer } from "ethers";
+import WalletConnectProvider from "@walletconnect/web3-provider";
 
 interface Context {
   openModal: () => void;
@@ -22,7 +23,14 @@ export const AppContextProvider = (props: any) => {
 
   const openModal = async () => {
     const providerOptions = {
-      /* See Provider Options Section */
+      walletconnect: {
+        package: WalletConnectProvider,
+        options: {
+          rpc: {
+            1: "https://eth-mainnet.alchemyapi.io/v2/3Gh_F9N6CievmzRNCVO1kfY2UUpxsWGC",
+          },
+        },
+      },
     };
 
     const web3Modal = new Web3Modal({
