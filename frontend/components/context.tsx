@@ -35,9 +35,10 @@ export const AppContextProvider = (props: any) => {
 
     const web3Modal = new Web3Modal({
       network: "mainnet", // optional
-      cacheProvider: true, // optional
+      cacheProvider: false, // optional
       providerOptions, // required
     });
+    web3Modal.clearCachedProvider();
     const provider = new providers.Web3Provider(await web3Modal.connect());
     const signer = provider.getSigner();
 
