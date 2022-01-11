@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import axios from "axios";
 import fs from "fs";
 import { delay } from "../util";
-import {createMultipleTx, init} from "../neo4jWrapper/index";
+import { createMultipleTx, init } from "../neo4jWrapper/index";
 import { Payload, Transfer, Response } from "./types";
 dotenv.config({
     path: "./src/.env",
@@ -29,7 +29,13 @@ class Scraper {
     accountTypeCache: Record<string, AccountType>;
     signatureMap: Record<string, Signature>;
 
-    constructor(name: string, startBlock: number, endBlock: number, blockRange: number, fromAddress?: string) {
+    constructor(
+        name: string,
+        startBlock: number,
+        endBlock: number,
+        blockRange: number,
+        fromAddress?: string
+    ) {
         this.name = name;
         this.block = startBlock;
         this.endBlock = endBlock;
@@ -45,7 +51,7 @@ class Scraper {
     }
 
     log(...msg: any[]) {
-        console.log(`[${this.name}] ${msg.join(" ")}`)
+        console.log(`[${this.name}] ${msg.join(" ")}`);
     }
 
     async saveCache() {
@@ -146,7 +152,7 @@ class Scraper {
             `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
             body
         );
-        return Number(res.data.result.timestamp)
+        return Number(res.data.result.timestamp);
     }
 
     async next() {
@@ -229,7 +235,7 @@ class Scraper {
             );
             await this.executeOnce();
         }
-        this.log('Done!')
+        this.log("Done!");
     }
 
     mapTxData(tx: Transfer) {
@@ -275,10 +281,9 @@ class Scraper {
             createMultipleTx(res.map(this.mapTxData.bind(this)));
 
             if (this.block - this.lastSave > this.saveInterval) {
-                this.saveCache()
-                this.lastSave = this.block
+                this.saveCache();
+                this.lastSave = this.block;
             }
-
         } catch (err: any) {
             this.log("Error: ", err);
             if (
@@ -301,7 +306,7 @@ class Scraper {
 }
 
 async function launchSession(s: Scraper) {
-    return s.run()
+    return s.run();
 }
 
 // async function fetchHistoricalDataForUser(address: string) {
@@ -313,8 +318,16 @@ async function main() {
     await init();
     const start = 13940000;
     const bufferRange = 10000;
-    const newScraper = (i: number) => launchSession(new Scraper(`${i}`, start + i * bufferRange, start + (i + 1) * bufferRange, 1));
-    await Promise.all([1,2,3,4,5].map(i => newScraper(i)));
+    const newScraper = (i: number) =>
+        launchSession(
+            new Scraper(
+                `${i}`,
+                start + i * bufferRange,
+                start + (i + 1) * bufferRange,
+                1
+            )
+        );
+    await Promise.all([1, 2, 3, 4, 5].map((i) => newScraper(i)));
 }
 
 main();
