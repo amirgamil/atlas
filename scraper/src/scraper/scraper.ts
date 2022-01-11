@@ -264,6 +264,7 @@ class Scraper {
 
             if (this.block - this.lastSave > this.saveInterval) {
                 this.saveCache();
+                this.lastSave = this.block;
             }
         } catch (err: any) {
             console.log("Error: ", err);
@@ -287,7 +288,8 @@ class Scraper {
 }
 
 async function launchSession(s: Scraper) {
-    init().then(() => s.run());
+    return s.run();
+    // return s.run()
 }
 
 async function fetchHistoricalDataForUser(address: string) {
@@ -296,10 +298,11 @@ async function fetchHistoricalDataForUser(address: string) {
 }
 
 async function main() {
-    const s = new Scraper(13969000, 1);
+    await init();
+    const s = new Scraper(13968000, 1);
     s.loadCache();
     s.loadSignatureMap();
-    await launchSession(s);
+    await Promise.all([launchSession(s)]);
 }
 
 main();
