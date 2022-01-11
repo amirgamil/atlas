@@ -24,6 +24,7 @@ export interface Transfer {
     category: string;
     rawContract: RawContract;
     method?: string;
+    timestamp?: number;
 }
 
 export interface Response {
