@@ -7,15 +7,36 @@ dotenv.config({
     path: "./src/.env",
 });
 
+interface DistAccount {
+    distance: number;
+    account: Account;
+}
+
 //given list of user accounts, computes distance from root user
 async function rankResults(currentUser: Account, listOfUsers: Account[]) {
-    const distanceMetrics = [];
+    const distanceMetrics: DistAccount[] = [];
+    const payload: Payload = {
+        jsonrpc: "2.0",
+        method: "alchemy_getAssetTransfers",
+        params: [
+            {
+                fromBlock: "0x0",
+                fromAddress: currentUser.address,
+                category: ["external", "internal", "token"],
+            },
+        ],
+    };
+    const userHistory = await getTransactionsWithPagination(payload);
     for (const similarUser of listOfUsers) {
-        distanceMetrics.push(
-            computeDistanceAccounts(similarUser.address, currentUser.address)
+        const dist = await computeDistanceAccounts(
+            similarUser.address,
+            userHistory
         );
+        distanceMetrics.push({ distance: dist, account: similarUser });
     }
-    distanceMetrics.sort();
+    distanceMetrics.sort((a: DistAccount, b: DistAccount) =>
+        a.distance < b.distance ? -1 : a.distance === b.distance ? 0 : 1
+    );
     return distanceMetrics.slice(0, 5);
 }
 
@@ -85,7 +106,10 @@ function computeDistanceTransfers(
     return dist / minLength;
 }
 
-async function computeDistanceAccounts(userA: string, userB: string) {
+async function computeDistanceAccounts(
+    userA: string,
+    userTransfers: Transfer[]
+) {
     const payload: Payload = {
         jsonrpc: "2.0",
         method: "alchemy_getAssetTransfers",
@@ -99,7 +123,5 @@ async function computeDistanceAccounts(userA: string, userB: string) {
     };
     const copyPayload = { ...payload };
     const transfersA = await getTransactionsWithPagination(copyPayload);
-    const newPayload = { ...payload };
-    const transfersB = await getTransactionsWithPagination(newPayload);
-    return computeDistanceTransfers(transfersA, transfersB);
+    return computeDistanceTransfers(transfersA, userTransfers);
 }
