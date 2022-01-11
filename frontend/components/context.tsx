@@ -1,9 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Web3Modal from "web3modal";
 import { providers, Signer } from "ethers";
 
-export const AppContext = React.createContext({
+interface Context {
+  openModal: () => void;
+  signer?: providers.JsonRpcSigner;
+  address?: string;
+}
+
+export const AppContext = React.createContext<Context>({
   openModal: () => {},
+  signer: undefined,
+  address: "",
 });
 
 export const AppContextProvider = (props: any) => {
@@ -31,11 +39,19 @@ export const AppContextProvider = (props: any) => {
     setAddress(address);
   };
 
-  <AppContext.Provider
-    value={{
-      openModal,
-    }}
-  >
-    <>{props.children}</>
-  </AppContext.Provider>;
+  return (
+    <AppContext.Provider
+      value={{
+        openModal,
+        signer,
+        address,
+      }}
+    >
+      <>{props.children}</>
+    </AppContext.Provider>
+  );
 };
+
+export function useAppContext() {
+  return useContext(AppContext);
+}
