@@ -1,57 +1,16 @@
 import dotenv from "dotenv";
 import axios from "axios";
-import { Account } from "../neo4jWrapper/index";
 import fs from "fs";
 import { delay } from "../util";
 import { createMultipleTx } from "../neo4jWrapper/index";
+import { Payload, Transfer, Response, RawContract } from "./types";
 dotenv.config({
     path: "./src/.env",
 });
 
-interface Transfer {
-    blockNum: string;
-    hash: string;
-    from: string;
-    to: string;
-    value: number;
-    erc721TokenId?: string;
-    erc1155Metadata?: string;
-    asset: string;
-    category: string;
-    rawContract: RawContract;
-    method?: string;
-}
-
-interface RawContract {
-    value?: string;
-    address?: string;
-    decimal?: string;
-}
-
-interface Response {
-    result: {
-        transfers: Array<Transfer>;
-        pageKey: string;
-    };
-}
-
 enum AccountType {
     EOA,
     Contract,
-}
-
-interface ParamData {
-    fromBlock: string;
-    category: string[];
-    pageKey?: string;
-    toBlock?: string;
-    fromAddress?: string;
-}
-
-interface Payload {
-    jsonrpc: string;
-    method: string;
-    params: ParamData[];
 }
 
 interface Signature {
@@ -304,18 +263,6 @@ class Scraper {
             }
         }
     }
-}
-
-//given list of user accounts, computes distance from root user
-async function rankResults(currentUser: Account, listOfUsers: Account[]) {
-    const distanceMetrics = [];
-    for (const similarUser of listOfUsers) {
-        distanceMetrics.push(computeDistance);
-    }
-}
-
-async function computeDistance(userA: Account, userB: Account) {
-    await fetch("");
 }
 
 async function launchSession(s: Scraper) {
