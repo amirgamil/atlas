@@ -5,7 +5,7 @@ import fs from "fs";
 import { delay } from "../util";
 import { createMultipleTx } from "../neo4jWrapper/index";
 dotenv.config({
-    path: "./scraper/.env",
+    path: "./src/.env",
 });
 
 interface Transfer {
