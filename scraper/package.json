@@ -7,16 +7,19 @@
         "lint": "eslint .",
         "start": "ts-node src/neo4jWrapper/index.ts",
         "scrape": "ts-node src/scraper/scraper.ts",
-        "disassemble": "ts-node src/modularity/index.ts"
+        "disassemble": "ts-node src/modularity/index.ts",
+        "compare": "ts-node src/scraper/recommendation.ts"
     },
     "author": "",
     "license": "MIT",
     "dependencies": {
         "@neo4j/graphql": "^2.5.5",
+        "@types/js-levenshtein": "^1.1.1",
         "apollo-server": "^3.6.1",
         "axios": "^0.24.0",
         "dotenv": "^10.0.0",
         "graphql": "^16.2.0",
+        "js-levenshtein": "^1.1.6",
         "neo4j-driver": "^4.4.1"
     },
     "devDependencies": {
