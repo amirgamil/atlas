@@ -260,7 +260,12 @@ class Scraper {
             });
 
             console.log(`inserting ${res.length} blocks`);
-            await createMultipleTx(res.map(this.mapTxData.bind(this)));
+            createMultipleTx(res.map(this.mapTxData.bind(this)));
+
+            if (this.block - this.lastSave > this.saveInterval) {
+                this.saveCache()
+            }
+
         } catch (err: any) {
             console.log("Error: ", err);
             if (
@@ -292,7 +297,7 @@ async function fetchHistoricalDataForUser(address: string) {
 }
 
 async function main() {
-    const s = new Scraper(13976050, 10);
+    const s = new Scraper(13967000, 20);
     s.loadCache();
     s.loadSignatureMap();
     await launchSession(s);
