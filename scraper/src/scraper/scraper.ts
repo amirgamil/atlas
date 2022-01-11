@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import axios from "axios";
 import fs from "fs";
 import { delay } from "../util";
-import {createMultipleTx, init} from "../neo4jWrapper/index";
+import { createMultipleTx, init } from "../neo4jWrapper/index";
 import { Payload, Transfer, Response } from "./types";
 dotenv.config({
     path: "./src/.env",
@@ -135,7 +135,7 @@ class Scraper {
             `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
             body
         );
-        return Number(res.data.result.timestamp)
+        return Number(res.data.result.timestamp);
     }
 
     async next() {
@@ -263,9 +263,8 @@ class Scraper {
             createMultipleTx(res.map(this.mapTxData.bind(this)));
 
             if (this.block - this.lastSave > this.saveInterval) {
-                this.saveCache()
+                this.saveCache();
             }
-
         } catch (err: any) {
             console.log("Error: ", err);
             if (
@@ -288,8 +287,7 @@ class Scraper {
 }
 
 async function launchSession(s: Scraper) {
-    return init().then(() => s.run());
-    // return s.run()
+    init().then(() => s.run());
 }
 
 async function fetchHistoricalDataForUser(address: string) {
