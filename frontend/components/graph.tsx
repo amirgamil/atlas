@@ -34,11 +34,9 @@ const config = {
     };
 */
 
-const graph = ({}) => {
+const graph = ({ user }: { user: string }) => {
   // TODO: don't use any
   const visRef: any = useRef();
-
-  const user = "0xa335ade338308b8e071cf2c8f3ca5e50f6563c60";
 
   useEffect(() => {
     const config = {
@@ -94,7 +92,7 @@ const graph = ({}) => {
       });
     });
     //vis.stabilize();
-  }, []);
+  }, [user]);
 
   return (
     <div

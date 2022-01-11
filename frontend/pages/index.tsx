@@ -23,7 +23,7 @@ const Home: NextPage = () => {
         <div>
           <h1 className="text-center">Your Recommendations</h1>
           <SafeHydrate>
-            <Graph />
+            <Graph user="0x00192fb10df37c9fb26829eb2cc623cd1bf599e8" />
           </SafeHydrate>
         </div>
       </main>
