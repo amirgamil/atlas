@@ -44,6 +44,7 @@ async function nuke(session: typeof neo4j.Session) {
         .run("MATCH (a)-[r]->() DELETE a, r")
         .then(() => session.run("MATCH (a) DELETE a"));
 }
+
 //external: user to user
 //internal: smart contract to smart contract
 //anything else: user to smart contract
@@ -51,19 +52,23 @@ export async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
     if (data.from === "0x0000000000000000000000000000000000000000") {
         return Promise.resolve()
     }
+    data.asset = data.asset || "UNKNOWN"
     const template = `
     MERGE (a:Account {addr: $from})
     MERGE (b:Account {addr: $to})
     SET a.isUser = ${data.fromIsUser}
     SET b.isUser = ${data.toIsUser}
-    CREATE p = (a)-[:To {
-        category: $category,
-        blockNum: $blockNum,
-        value: $value,
-        asset: $asset,
-        hash: $hash,
-        method: $method
-    }]->(b)
+    MERGE p = (a)-[r:To {asset: $asset} ]->(b)
+    ON CREATE SET
+        r.count = 1,
+        r.category = $category,
+        r.blockNum = $blockNum,
+        r.value = $value,
+        r.method = $method,
+        r.hash = $hash
+    ON MATCH SET
+        r.count = r.count + 1,
+        r.value = r.value + $value
     RETURN p
     `;
     return tx.run(template, data);
@@ -80,8 +85,12 @@ export async function createMultipleTx(data: TxI[]) {
 }
 
 export const session = driver.session();
-nuke(session)
-    .then(() => createIndex(session))
-    .then(() => createConstraints(session))
-    .then(() => session.close())
-    .then(() => console.log("Finished setup of indexes"));
+
+export async function init() {
+    return nuke(session)
+        .then(() => createIndex(session))
+        .then(() => createConstraints(session))
+        .then(() => session.close())
+        .then(() => console.log("Finished setup of indexes"));
+}
+

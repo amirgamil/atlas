@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import axios from "axios";
 import fs from "fs";
 import { delay } from "../util";
-import { createMultipleTx } from "../neo4jWrapper/index";
+import {createMultipleTx, init} from "../neo4jWrapper/index";
 import { Payload, Transfer, Response, RawContract } from "./types";
 dotenv.config({
     path: "./src/.env",
@@ -265,7 +265,8 @@ class Scraper {
 }
 
 async function launchSession(s: Scraper) {
-    s.run();
+    return init().then(() => s.run());
+    // return s.run()
 }
 
 async function fetchHistoricalDataForUser(address: string) {
@@ -274,7 +275,7 @@ async function fetchHistoricalDataForUser(address: string) {
 }
 
 async function main() {
-    const s = new Scraper(13976050, 1);
+    const s = new Scraper(13976576, 1);
     s.loadCache();
     s.loadSignatureMap();
     await launchSession(s);
