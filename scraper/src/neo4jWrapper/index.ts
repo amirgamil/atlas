@@ -61,7 +61,8 @@ export async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
         asset: $asset,
         hash: $hash,
         distance: $distance,
-        method: $method
+        method: $method,
+        timestamp: $timestamp
     }]->(b)
     RETURN p
     `;

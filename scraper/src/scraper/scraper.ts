@@ -20,6 +20,7 @@ interface Transfer {
     category: string;
     rawContract: RawContract;
     method?: string;
+    timestamp?: number;
 }
 
 interface RawContract {
@@ -165,6 +166,20 @@ class Scraper {
         return sigs;
     }
 
+    async getTimestampFromBlock(blockNo: number): Promise<number> {
+        const body = {
+            jsonrpc: "2.0",
+            method: "eth_getBlockByNumber",
+            id: 0,
+            params: ["0x" + blockNo.toString(16), false],
+        };
+        const res = await axios.post(
+            `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
+            body
+        );
+        return Number(res.data.result.timestamp)
+    }
+
     async next() {
         const payload: Payload = {
             jsonrpc: "2.0",
@@ -204,7 +219,7 @@ class Scraper {
                 method: "alchemy_getAssetTransfers",
                 params: [
                     {
-                        pageKey: r.result.pageKey,
+                        pageKey: pageKey,
                         fromBlock: "0x" + this.block.toString(16),
                         category: ["external", "internal", "token"],
                     },
@@ -262,11 +277,14 @@ class Scraper {
             toIsUser: toType === AccountType.EOA,
             fromIsUser: fromType === AccountType.EOA,
             method: tx.method ?? "",
+            timestamp: tx.timestamp ?? 0,
         };
     }
 
     async executeOnce() {
         try {
+            const block = this.block;
+            const timestamp = await this.getTimestampFromBlock(block);
             const res = await this.next();
             const tos = res.map((r) => r.to);
             const froms = res.map((r) => r.from);
@@ -281,6 +299,7 @@ class Scraper {
             const signatures = await this.getFunctionSignatures(txs);
             signatures.forEach((s: string, i: number) => {
                 res[i].method = this.getMethodName(s);
+                res[i].timestamp = timestamp;
             });
 
             console.log(`inserting ${res.length} blocks`);
@@ -328,7 +347,7 @@ async function fetchHistoricalDataForUser(address: string) {
 }
 
 async function main() {
-    const s = new Scraper(13976050, 1);
+    const s = new Scraper(13976050, 10);
     s.loadCache();
     s.loadSignatureMap();
     await launchSession(s);
