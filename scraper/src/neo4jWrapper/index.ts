@@ -71,7 +71,7 @@ export async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
         r.value = r.value + $value
     RETURN p
     `;
-    while(true) {
+    while (true) {
         try {
             tx.run(template, data);
             return;
@@ -81,7 +81,7 @@ export async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
     }
 }
 
-export async function createMultipleTx(data: TxI[]) {
+export function createMultipleTx(data: TxI[]) {
     const session = driver.session();
     return session
         .writeTransaction((tx: typeof neo4j.Transaction) => {
