@@ -29,7 +29,13 @@ class Scraper {
     accountTypeCache: Record<string, AccountType>;
     signatureMap: Record<string, Signature>;
 
-    constructor(name: string, startBlock: number, endBlock: number, blockRange: number, fromAddress?: string) {
+    constructor(
+        name: string,
+        startBlock: number,
+        endBlock: number,
+        blockRange: number,
+        fromAddress?: string
+    ) {
         this.name = name;
         this.block = startBlock;
         this.endBlock = endBlock;
@@ -45,7 +51,7 @@ class Scraper {
     }
 
     log(...msg: any[]) {
-        console.log(`[${this.name}] ${msg.join(" ")}`)
+        console.log(`[${this.name}] ${msg.join(" ")}`);
     }
 
     async saveCache() {
@@ -229,7 +235,7 @@ class Scraper {
             );
             await this.executeOnce();
         }
-        this.log('Done!')
+        this.log("Done!");
     }
 
     mapTxData(tx: Transfer) {
@@ -300,12 +306,7 @@ class Scraper {
 }
 
 async function launchSession(s: Scraper) {
-<<<<<<< HEAD
     return s.run();
-    // return s.run()
-=======
-    return s.run()
->>>>>>> 1dfdc809192df750250a772856551032c5e5ec1c
 }
 
 // async function fetchHistoricalDataForUser(address: string) {
@@ -315,17 +316,18 @@ async function launchSession(s: Scraper) {
 
 async function main() {
     await init();
-<<<<<<< HEAD
-    const s = new Scraper(11968000, 1);
-    s.loadCache();
-    s.loadSignatureMap();
-    await Promise.all([launchSession(s)]);
-=======
     const start = 13940000;
     const bufferRange = 10000;
-    const newScraper = (i: number) => launchSession(new Scraper(`${i}`, start + i * bufferRange, start + (i + 1) * bufferRange, 1));
-    await Promise.all([1,2,3,4,5].map(i => newScraper(i)));
->>>>>>> 1dfdc809192df750250a772856551032c5e5ec1c
+    const newScraper = (i: number) =>
+        launchSession(
+            new Scraper(
+                `${i}`,
+                start + i * bufferRange,
+                start + (i + 1) * bufferRange,
+                1
+            )
+        );
+    await Promise.all([1, 2, 3, 4, 5].map((i) => newScraper(i)));
 }
 
 main();
