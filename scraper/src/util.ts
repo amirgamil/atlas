@@ -17,3 +17,12 @@ export const blockSecondsAgo = async (s: number) => {
     const curr = await currBlock();
     return Math.round(curr - s / 13.1);
 };
+
+export const getContractName = async (addr: string) => {
+    // Can only run 5/sec
+    const res = await axios.post(
+        `https://api.etherscan.io/api?module=contract&action=getsourcecode&address=${addr}&apiKey=GEBPWJKD7ARJVNTF6WFT77B38XH5GHQH4N`
+    );
+    console.log(res.data)
+    return res?.data?.result[0]?.ContractName ?? "";
+}
