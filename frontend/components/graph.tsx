@@ -10,6 +10,17 @@ const secondOrderQuery = (addr: string) => {
   RETURN acc, edge, child, edge2, second`; //edge2, second;
 };
 
+export const getContractNameScrape = async (addr: string) => {
+  // Can only run 5/sec
+  const res = await fetch(`https://etherscan.io/address/${addr}`);
+  const data = await res.json();
+  const start = data.indexOf("<title>") + 6 + 4;
+  const end = data.indexOf("| 0x") ?? data.indexOf("</title>");
+  console.log(start, end);
+  const title = data.substring(start, end).trim();
+  return title;
+};
+
 // Old (v1) config
 /*
 const config = {
@@ -61,7 +72,9 @@ const graph = ({ user }: { user: string }) => {
           [NEOVIS_ADVANCED_CONFIG]: {
             function: {
               color: (node: any) => "red",
-              title: (node: any) => node.properties.addr,
+              title: async (node: any) => {
+                return node.properties.addr;
+              },
             },
           },
         },

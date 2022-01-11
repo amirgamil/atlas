@@ -6,10 +6,19 @@ import dynamic from "next/dynamic";
 
 import Nav from "../components/nav";
 import SafeHydrate from "../components/safehydrate";
+import { useAppContext } from "../components/context";
+import { useEffect, useState } from "react";
 
 const Graph = dynamic(() => import("../components/graph"), { ssr: false });
 
 const Home: NextPage = () => {
+  const context = useAppContext();
+  const [address, setAddress] = useState<string>("");
+
+  useEffect(() => {
+    setAddress(context.address ?? "");
+  }, [context]);
+
   return (
     <div className={styles.container}>
       <Nav />
@@ -22,8 +31,21 @@ const Home: NextPage = () => {
       <main className={styles.main}>
         <div>
           <h1 className="text-center">Your Recommendations</h1>
+          <div className="mt-1">
+            <div>
+              <input
+                type="text"
+                name="name"
+                id="name"
+                className="h-10 shadow-xl focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-400 p-4"
+                placeholder="Contract Address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
+            </div>
+          </div>
           <SafeHydrate>
-            <Graph user="0x00192fb10df37c9fb26829eb2cc623cd1bf599e8" />
+            <Graph user={address} />
           </SafeHydrate>
         </div>
       </main>
