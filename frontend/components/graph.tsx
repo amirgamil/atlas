@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import Neovis, { NEOVIS_ADVANCED_CONFIG } from "neovis.js";
+import Neovis, { NEOVIS_ADVANCED_CONFIG, NeoVisEvents } from "neovis.js";
 
 const NEO4JURI = "neo4j://143.244.183.189";
 const NEO4JUSER = "neo4j";
@@ -85,6 +85,12 @@ const graph = ({}) => {
     // @ts-ignore
     const vis = new Neovis(config);
     vis.render();
+    vis.registerOnEvent(NeoVisEvents.CompletionEvent, () => {
+      vis.network!.on("click", (nodes) => {
+        const addr = vis.nodes._data.get(12534).raw.properties.addr;
+        window.open(`https://etherscan.io/address/${addr}`, "_blank");
+      });
+    });
     //vis.stabilize();
   }, []);
 
