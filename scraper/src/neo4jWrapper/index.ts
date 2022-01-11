@@ -24,7 +24,6 @@ export interface TxI {
     value: Number;
     asset: String;
     hash: String;
-    distance: Number;
     method: String;
 }
 
@@ -49,6 +48,9 @@ async function nuke(session: typeof neo4j.Session) {
 //internal: smart contract to smart contract
 //anything else: user to smart contract
 export async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
+    if (data.from === "0x0000000000000000000000000000000000000000") {
+        return Promise.resolve()
+    }
     const template = `
     MERGE (a:Account {addr: $from})
     MERGE (b:Account {addr: $to})
