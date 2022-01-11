@@ -20,14 +20,29 @@ async function rankResults(currentUser: Account, listOfUsers: Account[]) {
 }
 
 async function getTransactionsWithPagination(payload: Payload) {
-    const transfers: Transfer[] = [];
     const transactionsA = await axios.post<Response>(
         `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
         payload
     );
-    //do stuff for pagination
-    return transactionsA.data.result.transfers;
+    const transfers: Transfer[] = transactionsA.data.result.transfers;
+    let pageKey = transactionsA.data.result.pageKey;
+    while (pageKey !== undefined) {
+        payload.params[0].pageKey = pageKey;
+        const next = await axios.post<Response>(
+            `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
+            payload
+        );
+        if (next.data.result.transfers) {
+            transfers.push(...next.data.result.transfers);
+        }
+        pageKey = next.data.result.pageKey;
+    }
+    return transfers;
 }
+
+const valOr0 = (val: typeof NaN | number) => {
+    return isNaN(val) ? 0 : val;
+};
 
 //calculates the difference between two transactions. Uses a weighted sum
 //0.7 to address, 0.2 type of token, 0.1 value
@@ -39,8 +54,10 @@ const calcDifferenceAccounts = (accountOne: Transfer, accountTwo: Transfer) => {
                 ? 0
                 : 1) +
         0.1 *
-            ((accountOne.value - accountTwo.value) /
-                (accountOne.value + accountTwo.value))
+            valOr0(
+                (accountOne.value - accountTwo.value) /
+                    (accountOne.value + accountTwo.value)
+            )
     );
 };
 
@@ -58,13 +75,14 @@ function computeDistanceTransfers(
     transferB.sort((t1: Transfer, t2: Transfer) =>
         t1.to < t2.to ? -1 : t1.to === t2.to ? 0 : 1
     );
+    const minLength = Math.min(transferA.length, transferB.length);
     //do a pairwise comparison
-    for (let i = 0; i < Math.min(transferA.length, transferB.length); i++) {
+    for (let i = 0; i < minLength; i++) {
         const transferOne = transferA[i];
         const transferTwo = transferB[i];
         dist += calcDifferenceAccounts(transferOne, transferTwo);
     }
-    return dist;
+    return dist / minLength;
 }
 
 async function computeDistanceAccounts(userA: string, userB: string) {
@@ -79,8 +97,9 @@ async function computeDistanceAccounts(userA: string, userB: string) {
             },
         ],
     };
-    const transfersA = await getTransactionsWithPagination(payload);
-    payload.params[0].fromAddress = userB;
-    const transfersB = await getTransactionsWithPagination(payload);
+    const copyPayload = { ...payload };
+    const transfersA = await getTransactionsWithPagination(copyPayload);
+    const newPayload = { ...payload };
+    const transfersB = await getTransactionsWithPagination(newPayload);
     return computeDistanceTransfers(transfersA, transfersB);
 }
