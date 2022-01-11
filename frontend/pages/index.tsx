@@ -2,8 +2,12 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import styles from "../styles/Home.module.css";
+import dynamic from "next/dynamic";
 
 import Nav from "../components/nav";
+import SafeHydrate from "../components/safehydrate";
+
+const Graph = dynamic(() => import("../components/graph"), { ssr: false });
 
 const Home: NextPage = () => {
   return (
@@ -18,6 +22,9 @@ const Home: NextPage = () => {
       <main className={styles.main}>
         <div>
           <h1>Your Recommendations</h1>
+          <SafeHydrate>
+            <Graph />
+          </SafeHydrate>
         </div>
       </main>
 
