@@ -73,8 +73,7 @@ export async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
     `;
     while(true) {
         try {
-            tx.run(template, data);
-            return;
+            return tx.run(template, data);
         } catch {
             await delay(1 + Math.random());
         }
