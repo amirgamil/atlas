@@ -21,7 +21,7 @@ const Home: NextPage = () => {
 
       <main className={styles.main}>
         <div>
-          <h1>Your Recommendations</h1>
+          <h1 className="text-center">Your Recommendations</h1>
           <SafeHydrate>
             <Graph />
           </SafeHydrate>

@@ -7,7 +7,7 @@ const NEO4JPASS = "miller-regular-game-printer-meter-6970";
 
 const secondOrderQuery = (addr: string) => {
   return `MATCH (acc:User {addr: '${addr}'})-[edge:To]->(child)-[edge2:To]->(second)
-  RETURN acc, edge, child, edge2, second`;
+  RETURN acc, edge, child, edge2, second`; //edge2, second;
 };
 
 // Old (v1) config
@@ -38,7 +38,7 @@ const graph = ({}) => {
   // TODO: don't use any
   const visRef: any = useRef();
 
-  const user = "0x0fe35cb5c7d2dfd63eb4eb9e02a6f20117a3303b";
+  const user = "0xa335ade338308b8e071cf2c8f3ca5e50f6563c60";
 
   useEffect(() => {
     const config = {
@@ -48,9 +48,7 @@ const graph = ({}) => {
         serverUser: NEO4JUSER,
         serverPassword: NEO4JPASS,
       },
-      initialCypher: secondOrderQuery(
-        "0x0fe35cb5c7d2dfd63eb4eb9e02a6f20117a3303b"
-      ),
+      initialCypher: secondOrderQuery(user),
       labels: {
         User: {
           [NEOVIS_ADVANCED_CONFIG]: {
@@ -87,8 +85,12 @@ const graph = ({}) => {
     vis.render();
     vis.registerOnEvent(NeoVisEvents.CompletionEvent, () => {
       vis.network!.on("click", (nodes) => {
-        const addr = vis.nodes._data.get(12534).raw.properties.addr;
-        window.open(`https://etherscan.io/address/${addr}`, "_blank");
+        try {
+          const addr = vis.nodes._data.get(nodes.nodes[0]).raw.properties.addr;
+          window.open(`https://etherscan.io/address/${addr}`, "_blank");
+        } catch {
+          console.log(nodes);
+        }
       });
     });
     //vis.stabilize();
