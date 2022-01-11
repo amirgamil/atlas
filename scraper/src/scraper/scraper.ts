@@ -296,7 +296,7 @@ async function fetchHistoricalDataForUser(address: string) {
 }
 
 async function main() {
-    const s = new Scraper(13969000, 20);
+    const s = new Scraper(13969000, 1);
     s.loadCache();
     s.loadSignatureMap();
     await launchSession(s);
