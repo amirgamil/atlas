@@ -161,7 +161,17 @@ const codesMap: Record<number, Code> = {
     0xff: ['SELFDESTRUCT', 5000, 1, 0, false, true]
 };
 
-export function opcodes(op: number, full: boolean) {
+export interface OpCode {
+    name: string
+    fee: number
+    in: number
+    out: number
+    dynamic: boolean
+    async?: boolean
+    pushData: string
+}
+
+export function opcodes(op: number, full: boolean): OpCode {
     const code = codesMap[op] ?? ['INVALID', 0, 0, 0, false];
     let opcode = code[0];
 
