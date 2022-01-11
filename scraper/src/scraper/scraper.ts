@@ -20,25 +20,36 @@ interface Signature {
 
 class Scraper {
     private readonly fromAddress: string | undefined;
+    name: string;
     block: number;
+    endBlock: number;
     range: number;
     lastSave: number;
     saveInterval: number;
     accountTypeCache: Record<string, AccountType>;
     signatureMap: Record<string, Signature>;
 
-    constructor(startBlock: number, blockRange: number, fromAddress?: string) {
+    constructor(name: string, startBlock: number, endBlock: number, blockRange: number, fromAddress?: string) {
+        this.name = name;
         this.block = startBlock;
+        this.endBlock = endBlock;
         this.range = blockRange; // size of block range
         this.accountTypeCache = {};
         this.signatureMap = {};
         this.fromAddress = fromAddress;
         this.lastSave = 0;
         this.saveInterval = blockRange * 10;
+
+        this.loadCache();
+        this.loadSignatureMap();
+    }
+
+    log(...msg: any[]) {
+        console.log(`[${this.name}] ${msg.join(" ")}`)
     }
 
     async saveCache() {
-        console.log(
+        this.log(
             "saving cache of size",
             Object.keys(this.accountTypeCache).length
         );
@@ -46,7 +57,7 @@ class Scraper {
             __dirname + "/cache.json",
             JSON.stringify(this.accountTypeCache),
             (err: any) => {
-                if (err) console.log(err);
+                if (err) this.log(err);
             }
         );
     }
@@ -56,9 +67,9 @@ class Scraper {
             __dirname + "/cache.json",
             (_: Error | null, data: Buffer) => {
                 if (data) {
-                    console.log("loading cache");
+                    this.log("loading cache");
                     this.accountTypeCache = JSON.parse(data.toString());
-                    console.log(
+                    this.log(
                         "cache loaded of size",
                         Object.keys(this.accountTypeCache).length
                     );
@@ -72,9 +83,9 @@ class Scraper {
             __dirname + "/signatures.json",
             (_: Error | null, data: Buffer) => {
                 if (data) {
-                    console.log("loading signature map");
+                    this.log("loading signature map");
                     this.signatureMap = JSON.parse(data.toString());
-                    console.log(
+                    this.log(
                         "signature map loaded of size",
                         Object.keys(this.signatureMap).length
                     );
@@ -212,12 +223,13 @@ class Scraper {
     }
 
     async run() {
-        while (true) {
-            console.log(
+        while (this.block < this.endBlock) {
+            this.log(
                 `Getting blocks ${this.block} to ${this.block + this.range - 1}`
             );
             await this.executeOnce();
         }
+        this.log('Done!')
     }
 
     mapTxData(tx: Transfer) {
@@ -259,7 +271,7 @@ class Scraper {
                 res[i].timestamp = timestamp;
             });
 
-            console.log(`inserting ${res.length} blocks`);
+            this.log(`inserting ${res.length} blocks`);
             createMultipleTx(res.map(this.mapTxData.bind(this)));
 
             if (this.block - this.lastSave > this.saveInterval) {
@@ -267,18 +279,18 @@ class Scraper {
                 this.lastSave = this.block;
             }
         } catch (err: any) {
-            console.log("Error: ", err);
+            this.log("Error: ", err);
             if (
                 err?.code === "Neo.TransientError.Transaction.DeadlockDetected"
             ) {
                 // no delay for deadlock retry
 
                 // TODO actually fix deadlocks, maybe use batched transactions
-                console.log("hit deadlock");
+                this.log("hit deadlock");
                 await delay(1);
             } else if (err?.code === "caught up with head") {
                 // caught up with head of chain, wait a little bit
-                console.log("caught up with head");
+                this.log("caught up with head");
                 await delay(5);
             } else {
                 console.error("err");
@@ -288,21 +300,32 @@ class Scraper {
 }
 
 async function launchSession(s: Scraper) {
+<<<<<<< HEAD
     return s.run();
     // return s.run()
+=======
+    return s.run()
+>>>>>>> 1dfdc809192df750250a772856551032c5e5ec1c
 }
 
-async function fetchHistoricalDataForUser(address: string) {
-    const s = new Scraper(0, -1, address);
-    s.executeOnce();
-}
+// async function fetchHistoricalDataForUser(address: string) {
+//     const s = new Scraper(0, -1, address);
+//     s.executeOnce();
+// }
 
 async function main() {
     await init();
+<<<<<<< HEAD
     const s = new Scraper(11968000, 1);
     s.loadCache();
     s.loadSignatureMap();
     await Promise.all([launchSession(s)]);
+=======
+    const start = 13940000;
+    const bufferRange = 10000;
+    const newScraper = (i: number) => launchSession(new Scraper(`${i}`, start + i * bufferRange, start + (i + 1) * bufferRange, 1));
+    await Promise.all([1,2,3,4,5].map(i => newScraper(i)));
+>>>>>>> 1dfdc809192df750250a772856551032c5e5ec1c
 }
 
 main();

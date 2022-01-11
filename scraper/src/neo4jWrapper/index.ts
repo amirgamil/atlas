@@ -41,10 +41,10 @@ async function createConstraints(session: typeof neo4j.Session) {
 }
 
 async function nuke(session: typeof neo4j.Session) {
-    return session
+    /*      return session
         .run("MATCH (a)-[r]->() DELETE a, r")
-        .then(() => session.run("MATCH (a) DELETE a"));
-    // return Promise.resolve()
+        .then(() => session.run("MATCH (a) DELETE a")); */
+    return Promise.resolve();
 }
 
 //external: user to user
@@ -73,8 +73,7 @@ export async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
     `;
     while (true) {
         try {
-            tx.run(template, data);
-            return;
+            return tx.run(template, data);
         } catch {
             await delay(1 + Math.random());
         }
