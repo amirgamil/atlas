@@ -281,7 +281,7 @@ class Scraper {
                 console.log("caught up with head");
                 await delay(5);
             } else {
-                console.error(err);
+                console.error("err");
             }
         }
     }
@@ -297,7 +297,7 @@ async function fetchHistoricalDataForUser(address: string) {
 }
 
 async function main() {
-    const s = new Scraper(13967000, 20);
+    const s = new Scraper(13969000, 20);
     s.loadCache();
     s.loadSignatureMap();
     await launchSession(s);

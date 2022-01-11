@@ -40,9 +40,10 @@ async function createConstraints(session: typeof neo4j.Session) {
 }
 
 async function nuke(session: typeof neo4j.Session) {
-    return session
+/*     return session
         .run("MATCH (a)-[r]->() DELETE a, r")
-        .then(() => session.run("MATCH (a) DELETE a"));
+        .then(() => session.run("MATCH (a) DELETE a")); */
+        return Promise.resolve()
 }
 //external: user to user
 //internal: smart contract to smart contract
