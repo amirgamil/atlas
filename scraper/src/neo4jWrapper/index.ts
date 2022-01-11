@@ -1,7 +1,8 @@
 import dotenv from "dotenv";
 import neo4j from "neo4j-driver";
+import { delay } from "../util";
 dotenv.config({ path: "src/.env" });
-const driver = neo4j.driver(
+export const driver = neo4j.driver(
     `${process.env.NEO4J_URI}`,
     neo4j.auth.basic(
         `${process.env.NEO4J_USER}`,
@@ -70,7 +71,14 @@ export async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
         r.value = r.value + $value
     RETURN p
     `;
-    return tx.run(template, data);
+    while(true) {
+        try {
+            tx.run(template, data);
+            return;
+        } catch {
+            await delay(1 + Math.random());
+        }
+    }
 }
 
 export async function createMultipleTx(data: TxI[]) {
