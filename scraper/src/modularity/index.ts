@@ -27,7 +27,7 @@ function getSigHashes(bytecode: OpCode[]): string[] {
 }
 
 type Counts = { [key: string]: number }
-function jaccardIndex(codes1: string[], codes2: string[]) {
+export function jaccardIndex(codes1: string[], codes2: string[]) {
     const getCounts = (codes: string[]) => {
         const res: Counts = {}
         return codes.reduce((total, cur) => {
@@ -58,7 +58,7 @@ function jaccardIndex(codes1: string[], codes2: string[]) {
     return intersection(s1, s2)/union(s1, s2)
 }
 
-function flatJaccardIndex(codes1: string[], codes2: string[]) {
+export function flatJaccardIndex(codes1: string[], codes2: string[]) {
     return jaccardIndex([...new Set(codes1)], [...new Set(codes2)])
 }
 

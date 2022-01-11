@@ -258,7 +258,6 @@ class Scraper {
             value: tx.value,
             asset: tx.asset,
             hash: tx.hash,
-            distance: 1,
             toIsUser: toType === AccountType.EOA,
             fromIsUser: fromType === AccountType.EOA,
             method: tx.method ?? "",
