@@ -11,7 +11,8 @@ export const driver = neo4j.driver(
 );
 
 export interface Account {
-    addr: string;
+    address: string;
+    isUser: boolean;
 }
 
 export interface TxI {
@@ -70,13 +71,7 @@ export async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
         r.value = r.value + $value
     RETURN p
     `;
-    while (true) {
-        try {
-            return tx.run(template, data);
-        } catch {
-            await delay(1 + Math.random());
-        }
-    }
+    return tx.run(template, data);
 }
 
 export function createMultipleTx(data: TxI[]) {

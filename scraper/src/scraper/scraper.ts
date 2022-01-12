@@ -282,14 +282,13 @@ class Scraper {
             });
 
             this.log(`inserting ${res.length} blocks`);
-            createMultipleTx(res.map(this.mapTxData.bind(this)));
+            await createMultipleTx(res.map(this.mapTxData.bind(this)));
 
             if (this.block - this.lastSave > this.saveInterval) {
                 this.saveCache();
                 this.lastSave = this.block;
             }
         } catch (err: any) {
-            this.log("Error: ", err);
             if (
                 err?.code === "Neo.TransientError.Transaction.DeadlockDetected"
             ) {
@@ -303,7 +302,8 @@ class Scraper {
                 this.log("caught up with head");
                 await delay(5);
             } else {
-                console.error("err");
+                this.log("err!", err?.code);
+                await delay(1 + Math.random()) // add jitter
             }
         }
     }
@@ -341,7 +341,7 @@ async function main() {
                 1
             )
         );
-    await Promise.all([1, 2, 3, 4, 5].map((i) => newScraper(i)));
+    await Promise.all([0, 1, 2, 3, 4].map((i) => newScraper(i)));
 }
 
 // main();
