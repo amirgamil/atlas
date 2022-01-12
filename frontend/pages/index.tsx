@@ -32,12 +32,12 @@ const Home: NextPage = () => {
         <div>
           <h1 className="text-center">Your Recommendations</h1>
           <div className="mt-1">
-            <div>
+            <div className="mb-2">
               <input
                 type="text"
                 name="name"
                 id="name"
-                className="h-10 shadow-xl focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-400 p-4"
+                className="h-16 ring-offset-2 ring-2 block w-full sm:text-sm p-4"
                 placeholder="Contract Address"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
@@ -56,10 +56,7 @@ const Home: NextPage = () => {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Powered by{" "}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
+          Based
         </a>
       </footer>
     </div>
