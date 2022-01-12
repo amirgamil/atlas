@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import constants from "../constants";
 import { utils } from "ethers";
 import useDebounce from "../hooks/useDebounce";
+import getName from "../names";
 
 const Graph = dynamic(() => import("../components/graph"), { ssr: false });
 
@@ -87,7 +88,7 @@ const Home: NextPage = () => {
                 return (
                   <div>
                     <a href={`https://etherscan.io/address/${a.addr}`}>
-                      {a.addr}
+                      {getName(a.addr)}
                     </a>
                   </div>
                 );
