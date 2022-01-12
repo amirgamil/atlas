@@ -223,6 +223,21 @@ export const generateRecommendationForAddr = async (addr: string) => {
     }
 };
 
+export const getHotContracts = async (n: number) => {
+    const res = await executeReadQuery(`
+        MATCH (a: User)-[:To]->(b: Contract)
+        RETURN b, COUNT(a) as users
+        ORDER BY users DESC LIMIT 10`
+    );
+    //console.log(res.records);
+    const addresses = res.records.map((r) => ({
+        addr: r.get("b").properties.addr,
+        count: Number(r.get("users"))
+    }))
+    console.log(addresses);
+    return addresses
+}
+
 const converter = new Converter();
 
 interface Neo4JReadResult {

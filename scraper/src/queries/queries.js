@@ -21,3 +21,10 @@ RETURN friend.addr, friend.distance as dist
 ORDER BY dist DESC
 LIMIT 10
 `;
+
+// Get top contracts by number of users
+`
+MATCH (a: User)-[:To]->(b: Contract)
+RETURN b, COUNT(a) as users
+ORDER BY SIZE(users) DESC LIMIT 10
+`;
