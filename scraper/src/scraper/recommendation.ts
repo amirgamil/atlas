@@ -4,6 +4,7 @@ import { Transfer, Response } from "./types";
 import { Payload } from "./types";
 import dotenv from "dotenv";
 import { Converter } from "./scraper";
+import { getContractNameScrape } from "../util";
 // import { QueryResult } from "neo4j-driver";
 dotenv.config({
     path: "./src/.env",
@@ -25,7 +26,7 @@ async function rankResults(currentUser: Account, listOfUsers: Account[]) {
                 fromBlock: "0x0",
                 fromAddress: currentUser.addr,
                 category: ["external", "internal", "token"],
-                maxCount: "0x64",
+                maxCount: "0x14",
             },
         ],
     };
@@ -41,6 +42,7 @@ async function rankResults(currentUser: Account, listOfUsers: Account[]) {
     distanceMetrics.sort((a: DistAccount, b: DistAccount) =>
         a.distance < b.distance ? -1 : a.distance === b.distance ? 0 : 1
     );
+    console.log("metrics: ", distanceMetrics);
     return distanceMetrics.slice(0, 5);
 }
 
@@ -49,6 +51,10 @@ async function getTransactionsWithPagination(payload: Payload): Promise<TxI[]> {
         `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
         payload
     );
+
+    if (!transactions.data.result.transfers) {
+        console.log("uh oh: ", transactions.data.result);
+    }
 
     const transfers: TxI[] = transactions.data.result.transfers.map(
         converter.mapTxData
@@ -125,13 +131,13 @@ const getUserTxHistory = async (address: string): Promise<TxI[]> => {
     const res =
         await executeReadQuery(`MATCH (acc:User {addr: '${address}'})-[transaction:To]->(child:Contract)
     RETURN transaction`);
-    console.log(res.records.length);
+    console.log("alchemy response length: ", res.records.length);
     for (const edge of res.records) {
         const neo4jReadResult = edge as unknown as Neo4JReadResult;
         const maybeTransfer = neo4jReadResult._fields[0].properties;
 
         if (isTransfer(maybeTransfer)) {
-            console.log(maybeTransfer);
+            console.log("transfer", maybeTransfer);
             transfers.push(maybeTransfer);
         }
     }
@@ -157,12 +163,31 @@ export const generateRecommendationForAddr = async (addr: string) => {
             if (isAccount(maybeAccount)) {
                 return { addr: maybeAccount.addr };
             } else {
-                console.log(maybeAccount);
+                console.log("acc: ", maybeAccount);
                 throw new Error("Should have been an account");
             }
         });
         const ranks = await rankResults({ addr }, similarUsers);
-        console.log(ranks);
+        const recommendedSmartContracts: Account[] = [];
+        for (const rank of ranks) {
+            const similarSmartContracts = await executeReadQuery(
+                `MATCH (acc:User {addr: '${rank.account.addr}'})-[:To]->(child:Contract)
+                 RETURN child
+                 LIMIT 2
+                 `
+            );
+            similarSmartContracts.records.map((el) => {
+                const neo4jReadResult = el as unknown as Neo4JReadResult;
+                const maybeAccount = neo4jReadResult._fields[0].properties;
+
+                if (isAccount(maybeAccount)) {
+                    recommendedSmartContracts.push(maybeAccount);
+                } else {
+                    throw new Error("should not happen");
+                }
+            });
+        }
+        return recommendedSmartContracts;
     }
 };
 
