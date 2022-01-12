@@ -147,7 +147,6 @@ async function computeDistanceAccounts(
 
 export const generateRecommendationForAddr = async (addr: string) => {
     //check it exists in the graph
-    await init();
     const friendTxITransactions: Map<String, TxI[]> = new Map();
 
     //get users that have interacted the same contracts as the current address

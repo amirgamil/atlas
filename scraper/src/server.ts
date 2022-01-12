@@ -5,6 +5,7 @@ import {
     getHotContracts,
 } from "./scraper/recommendation";
 import { converter } from "./util";
+import { init } from "./neo4jWrapper";
 
 const app = express();
 //CHANGE FOR PROD
@@ -41,6 +42,7 @@ app.get("/hot", async (req, res) => {
 
 //make sure that the server is running
 app.listen(3001, () => {
+    init();
     console.log(`Server is up at port ${3001}`);
     converter.loadCaches();
 });
