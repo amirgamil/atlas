@@ -15,6 +15,11 @@ interface DistAccount {
     account: Account;
 }
 
+interface ContractSuggestion {
+    name: string;
+    addr: string;
+}
+
 //given list of user accounts, computes distance from root user
 async function rankResults(currentUser: Account, listOfUsers: Account[]) {
     const payload: Payload = {
@@ -172,7 +177,7 @@ export const generateRecommendationForAddr = async (addr: string) => {
             }
         });
         const ranks = await rankResults({ addr }, similarUsers);
-        const promises: Promise<string[]>[] = [];
+        const promises: Promise<Array<string | ContractSuggestion>>[] = [];
         for (const rank of ranks) {
             promises.push(
                 new Promise(async (resolve) => {
@@ -182,7 +187,7 @@ export const generateRecommendationForAddr = async (addr: string) => {
                  LIMIT 20
                  `
                     );
-                    const currentRecommendedSmartContracts: string[] = [];
+                    const currentRecommendedSmartContracts: ContractSuggestion[] = [];
                     similarSmartContracts.records.map(async (el) => {
                         const neo4jReadResult =
                             el as unknown as Neo4JReadResult;
@@ -194,14 +199,13 @@ export const generateRecommendationForAddr = async (addr: string) => {
                                 maybeAccount.addr
                             );
                             if (
-                                name ===
-                                '<!doctype html>\n<html lang="en">\n<head><title>'
+                                name.toLowerCase().includes('<!doctype html>')
                             ) {
                                 currentRecommendedSmartContracts.push(
-                                    maybeAccount.addr
+                                    {addr: maybeAccount.addr, name: maybeAccount.addr}
                                 );
                             } else {
-                                currentRecommendedSmartContracts.push(name);
+                                currentRecommendedSmartContracts.push({addr: maybeAccount.addr, name});
                             }
                         } else {
                             throw new Error("should not happen");

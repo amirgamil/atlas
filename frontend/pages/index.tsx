@@ -8,7 +8,7 @@ import Nav from "../components/nav";
 import SafeHydrate from "../components/safehydrate";
 import { useAppContext } from "../components/context";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import constants from "../constants";
 
 const Graph = dynamic(() => import("../components/graph"), { ssr: false });
 
@@ -22,12 +22,21 @@ const Home: NextPage = () => {
   }, [context]);
 
   useEffect(() => {
+    // Get hot contracts
+    const f = async () => {
+      const res = await fetch(`${constants.serverUri}/hot`);
+      console.log(await res.json());
+    };
+  });
+
+  useEffect(() => {
     const f = async () => {
       const res = await fetch(
         "http://localhost:3001/recommend?address=" + address
       );
       const json = await res.json();
-      const results = json.results;
+      const results = json.results ?? [];
+      console.log(results);
       setRecommended(results);
     };
     f();
@@ -62,11 +71,14 @@ const Home: NextPage = () => {
             <Graph user={address} />
           </SafeHydrate>
           <div>
-            {recommended.map((a) => (
-              <div>
-                <a href={`https://etherscan.io/address/${a.addr}`}>{a.addr}</a>
-              </div>
-            ))}
+            {recommended.map &&
+              recommended.map((a) => (
+                <div>
+                  <a href={`https://etherscan.io/address/${a.addr}`}>
+                    {a.addr}
+                  </a>
+                </div>
+              ))}
           </div>
         </div>
       </main>
