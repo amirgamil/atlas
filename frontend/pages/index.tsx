@@ -14,10 +14,23 @@ const Graph = dynamic(() => import("../components/graph"), { ssr: false });
 const Home: NextPage = () => {
   const context = useAppContext();
   const [address, setAddress] = useState<string>("");
+  const [recommended, setRecommended] = useState<Array<any>>([]);
 
   useEffect(() => {
     setAddress(context.address ?? "");
   }, [context]);
+
+  useEffect(() => {
+    const f = async () => {
+      const res = await fetch(
+        "http://localhost:3001/recommend?address=" + address
+      );
+      const json = await res.json();
+      const results = json.results;
+      setRecommended(results);
+    };
+    f();
+  }, [address]);
 
   return (
     <div className={styles.container}>
@@ -47,6 +60,13 @@ const Home: NextPage = () => {
           <SafeHydrate>
             <Graph user={address} />
           </SafeHydrate>
+          <div>
+            {recommended.map((a) => (
+              <div>
+                <a href={`https://etherscan.io/address/${a.addr}`}>{a.addr}</a>
+              </div>
+            ))}
+          </div>
         </div>
       </main>
 
