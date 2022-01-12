@@ -3,7 +3,7 @@ import { Account, executeReadQuery, init, TxI } from "../neo4jWrapper/index";
 import { Transfer, Response } from "./types";
 import { Payload } from "./types";
 import dotenv from "dotenv";
-import { converter, getContractNameScrape } from "../util";
+import { converter } from "../util";
 import PromisePool from "es6-promise-pool";
 import Bottleneck from "bottleneck";
 
@@ -157,6 +157,7 @@ export const generateRecommendationForAddr = async (addr: string) => {
 
     if (res.records.length < 2) {
         //Do stuff to query current user and add their friends to the graph
+        return new Set();
     } else {
         const similarUsers: Account[] = [];
 
@@ -167,7 +168,10 @@ export const generateRecommendationForAddr = async (addr: string) => {
             const edge = neo4jReadResult._fields[1].properties as TxI;
 
             if (isAccount(fromAddressMaybe)) {
-                similarUsers.push({ addr: fromAddressMaybe.addr });
+                similarUsers.push({
+                    addr: fromAddressMaybe.addr,
+                    isUser: true,
+                });
                 edge.from = fromAddressMaybe.addr;
             }
 
@@ -188,7 +192,7 @@ export const generateRecommendationForAddr = async (addr: string) => {
         console.log(friendTxITransactions.size);
 
         const ranks = await rankResults(
-            { addr },
+            { addr, isUser: true },
             similarUsers,
             friendTxITransactions
         );
@@ -249,6 +253,20 @@ export const generateRecommendationForAddr = async (addr: string) => {
             ),
         ];
     }
+};
+
+export const getHotContracts = async (n: number) => {
+    const res = await executeReadQuery(`
+        MATCH (a: User)-[:To]->(b: Contract)
+        RETURN b, COUNT(a) as users
+        ORDER BY users DESC LIMIT 10`);
+    //console.log(res.records);
+    const addresses = res.records.map((r) => ({
+        addr: r.get("b").properties.addr,
+        count: Number(r.get("users")),
+    }));
+    console.log(addresses);
+    return addresses;
 };
 
 interface Neo4JReadResult {

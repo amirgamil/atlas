@@ -31,11 +31,15 @@ export const getContractName = async (addr: string) => {
 
 export const getContractNameScrape = async (addr: string) => {
     // Can only run 5/sec
-    const res = await axios.get(`https://etherscan.io/address/${addr}`);
-    const start = res.data.indexOf("<title>") + 6 + 4;
-    const end = res.data.indexOf("| 0x") ?? res.data.indexOf("</title>");
-    const title = res.data.substring(start, end).trim();
-    return title;
+    try {
+        const res = await axios.get(`https://etherscan.io/address/${addr}`);
+        const start = res.data.indexOf("<title>") + 6 + 4;
+        const end = res.data.indexOf("| 0x") ?? res.data.indexOf("</title>");
+        const title = res.data.substring(start, end).trim();
+        return title;
+    } catch {
+        return addr
+    }
 };
 
 export const getContractNameScrapeTest = async () => {
