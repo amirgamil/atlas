@@ -8,6 +8,7 @@ import Nav from "../components/nav";
 import SafeHydrate from "../components/safehydrate";
 import { useAppContext } from "../components/context";
 import { useEffect, useState } from "react";
+import axios from "axios";
 
 const Graph = dynamic(() => import("../components/graph"), { ssr: false });
 

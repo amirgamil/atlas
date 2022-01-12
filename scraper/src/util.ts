@@ -24,21 +24,18 @@ export const getContractName = async (addr: string) => {
     const res = await axios.post(
         `https://api.etherscan.io/api?module=contract&action=getsourcecode&address=${addr}&apiKey=GEBPWJKD7ARJVNTF6WFT77B38XH5GHQH4N`
     );
-    console.log(res.data)
+    console.log(res.data);
     return res?.data?.result[0]?.ContractName ?? "";
-}
+};
 
 export const getContractNameScrape = async (addr: string) => {
     // Can only run 5/sec
-    const res = await axios.get(
-        `https://etherscan.io/address/${addr}`
-    );
+    const res = await axios.get(`https://etherscan.io/address/${addr}`);
     const start = res.data.indexOf("<title>") + 6 + 4;
     const end = res.data.indexOf("| 0x") ?? res.data.indexOf("</title>");
-    console.log(start, end)
     const title = res.data.substring(start, end).trim();
-    return title
-}
+    return title;
+};
 
 export const getContractNameScrapeTest = async () => {
     const addresses = [
@@ -65,11 +62,11 @@ export const getContractNameScrapeTest = async () => {
         "0x64aa3364f17a4d01c6f1751fd97c2bd3d7e7f1d5",
         "0x7357dc2f2b6b51c8e2c7efc728002a499d503c17",
         "0x5fdcca53617f4d2b9134b29090c87d01058e27e9",
-    ]
+    ];
 
-    for(let i = 0; i < addresses.length; i++) {
+    for (let i = 0; i < addresses.length; i++) {
         const d = await getContractNameScrape(addresses[i]);
         console.log(d);
         await delay(3);
     }
-}
+};
