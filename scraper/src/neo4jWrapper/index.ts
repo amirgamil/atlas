@@ -11,8 +11,7 @@ export const driver = neo4j.driver(
 );
 
 export interface Account {
-    address: string;
-    isUser: boolean;
+    addr: string;
 }
 
 export interface TxI {
@@ -98,4 +97,11 @@ export async function init() {
         .then(() => createConstraints(session))
         .then(() => session.close())
         .then(() => console.log("Finished setup of indexes"));
+}
+
+export async function executeReadQuery(query: string) {
+    const session = driver.session();
+    return session.readTransaction((tx: typeof neo4j.Transaction) =>
+        tx.run(query)
+    );
 }

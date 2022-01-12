@@ -46,6 +46,10 @@ class Scraper {
         this.lastSave = 0;
         this.saveInterval = blockRange * 10;
 
+        this.mapTxData = this.mapTxData.bind(this);
+    }
+
+    async loadCaches() {
         this.loadCache();
         this.loadSignatureMap();
     }
@@ -305,12 +309,22 @@ class Scraper {
     }
 }
 
+//Used for converting Transfers to Txi without scraping, so we just pass dummy values
+//since we will not be using any of the methods which need it
+export class Converter extends Scraper {
+    constructor() {
+        super("", 1, 2, 1);
+    }
+}
+
 async function launchSession(s: Scraper) {
+    await s.loadCaches();
     return s.run();
 }
 
 // async function fetchHistoricalDataForUser(address: string) {
 //     const s = new Scraper(0, -1, address);
+//     await s.loadCaches();
 //     s.executeOnce();
 // }
 
@@ -330,5 +344,5 @@ async function main() {
     await Promise.all([1, 2, 3, 4, 5].map((i) => newScraper(i)));
 }
 
-main();
+// main();
 // fetchHistoricalDataForUser("some address");

@@ -4,6 +4,7 @@ export interface ParamData {
     pageKey?: string;
     toBlock?: string;
     fromAddress?: string;
+    maxCount?: string;
 }
 
 export interface Payload {
