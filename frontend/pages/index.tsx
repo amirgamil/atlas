@@ -16,6 +16,7 @@ const Home: NextPage = () => {
   const context = useAppContext();
   const [address, setAddress] = useState<string>("");
   const [recommended, setRecommended] = useState<Array<any>>([]);
+  const [hot, setHot] = useState<Array<any>>([]);
 
   useEffect(() => {
     setAddress(context.address ?? "");
@@ -25,9 +26,13 @@ const Home: NextPage = () => {
     // Get hot contracts
     const f = async () => {
       const res = await fetch(`${constants.serverUri}/hot`);
-      console.log(await res.json());
+      const json = await res.json();
+      const { results } = json;
+      setHot(results);
     };
-  });
+
+    f();
+  }, []);
 
   useEffect(() => {
     const f = async () => {
@@ -53,7 +58,7 @@ const Home: NextPage = () => {
 
       <main className={styles.main}>
         <div>
-          <h1 className="text-center">Your Recommendations</h1>
+          <h1 className="text-center">Transaction Graph</h1>
           <div className="mt-1">
             <div className="mb-2">
               <input
@@ -70,12 +75,28 @@ const Home: NextPage = () => {
           <SafeHydrate>
             <Graph user={address} />
           </SafeHydrate>
-          <div>
+          <div className="text-center">
+            {hot.length && <h1 className="text-center">Hot Contracts</h1>}
+            {hot.map &&
+              hot.map((a) => {
+                return (
+                  <div>
+                    <a href={`https://etherscan.io/address/${a.addr}`}>
+                      {a.addr}
+                    </a>
+                  </div>
+                );
+              })}
+          </div>
+          <div className="text-center">
+            {recommended.length && (
+              <h1 className="text-center">Your Recommendations</h1>
+            )}
             {recommended.map &&
               recommended.map((a) => (
                 <div>
                   <a href={`https://etherscan.io/address/${a.addr}`}>
-                    {a.addr}
+                    {a.name}
                   </a>
                 </div>
               ))}
