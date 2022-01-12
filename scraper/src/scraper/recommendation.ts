@@ -247,7 +247,7 @@ export const generateRecommendationForAddr = async (addr: string) => {
         console.log("done");
         return [
             ...new Set(
-                responses.reduce((prev, current) => {
+                responses.reduce((prev: any, current: any) => {
                     return [...prev, ...current];
                 }, [])
             ),
