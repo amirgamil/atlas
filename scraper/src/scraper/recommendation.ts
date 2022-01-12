@@ -150,7 +150,7 @@ const getUserTxHistory = async (address: string): Promise<TxI[]> => {
 
 export const generateRecommendationForAddr = async (addr: string) => {
     //check it exists in the graph
-    await init();
+    //await init();
     await converter.loadCaches();
     ``;
     //get users that have interacted the same contracts as the current address
