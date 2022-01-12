@@ -9,6 +9,7 @@ import SafeHydrate from "../components/safehydrate";
 import { useAppContext } from "../components/context";
 import { useEffect, useState } from "react";
 import constants from "../constants";
+import { utils } from "ethers";
 
 const Graph = dynamic(() => import("../components/graph"), { ssr: false });
 
@@ -36,6 +37,8 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     const f = async () => {
+      if (!utils.isAddress(address)) return;
+
       const res = await fetch(
         "http://localhost:3001/recommend?address=" + address
       );
@@ -75,8 +78,8 @@ const Home: NextPage = () => {
           <SafeHydrate>
             <Graph user={address} />
           </SafeHydrate>
-          <div className="text-center">
-            {hot.length && <h1 className="text-center">Hot Contracts</h1>}
+          <div className="text-center mt-6">
+            {hot.length > 0 && <h1 className="text-center">Hot Contracts</h1>}
             {hot.map &&
               hot.map((a) => {
                 return (
@@ -88,8 +91,8 @@ const Home: NextPage = () => {
                 );
               })}
           </div>
-          <div className="text-center">
-            {recommended.length && (
+          <div className="text-center mt-6">
+            {recommended.length > 0 && (
               <h1 className="text-center">Your Recommendations</h1>
             )}
             {recommended.map &&

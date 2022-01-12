@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import Neovis, { NEOVIS_ADVANCED_CONFIG, NeoVisEvents } from "neovis.js";
+import { utils } from "ethers";
 
 const NEO4JURI = "neo4j://143.244.183.189";
 const NEO4JUSER = "neo4j";
@@ -12,6 +13,7 @@ const secondOrderQuery = (addr: string) => {
 
 export const getContractNameScrape = async (addr: string) => {
   // Can only run 5/sec
+  if (!utils.isAddress(addr)) return;
   const res = await fetch(`https://etherscan.io/address/${addr}`);
   const data = await res.json();
   const start = data.indexOf("<title>") + 6 + 4;
