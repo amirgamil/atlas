@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { generateRecommendationForAddr } from "./scraper/recommendation";
+import { converter } from "./util";
 
 const app = express();
 //CHANGE FOR PROD
@@ -27,4 +28,5 @@ app.get("/recommend", async (req, res, next) => {
 //make sure that the server is running
 app.listen(3001, () => {
     console.log(`Server is up at port ${3001}`);
+    converter.loadCaches();
 });

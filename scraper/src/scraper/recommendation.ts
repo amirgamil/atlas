@@ -3,8 +3,9 @@ import { Account, executeReadQuery, init, TxI } from "../neo4jWrapper/index";
 import { Transfer, Response } from "./types";
 import { Payload } from "./types";
 import dotenv from "dotenv";
-import { Converter } from "./scraper";
-import { getContractNameScrape } from "../util";
+import { converter, getContractNameScrape } from "../util";
+import PromisePool from "es6-promise-pool";
+import Bottleneck from "bottleneck";
 
 dotenv.config({
     path: "./src/.env",
@@ -15,8 +16,16 @@ interface DistAccount {
     account: Account;
 }
 
+const limiter = new Bottleneck({
+    maxConcurrent: 100,
+});
+
 //given list of user accounts, computes distance from root user
-async function rankResults(currentUser: Account, listOfUsers: Account[]) {
+async function rankResults(
+    currentUser: Account,
+    listOfUsers: Account[],
+    allTxIHistory: Map<String, TxI[]>
+) {
     const payload: Payload = {
         jsonrpc: "2.0",
         method: "alchemy_getAssetTransfers",
@@ -30,23 +39,28 @@ async function rankResults(currentUser: Account, listOfUsers: Account[]) {
         ],
     };
     const userHistory = await getTransactionsWithPagination(payload);
-    const promises: Promise<DistAccount>[] = [];
-    for (const similarUser of listOfUsers) {
-        promises.push(
-            new Promise(async (resolve) => {
-                const dist = await computeDistanceAccounts(
-                    similarUser.addr,
-                    userHistory
+    const distanceMetrics = await limiter.schedule(() => {
+        const promises: Promise<DistAccount>[] = [];
+        for (const similarUser of listOfUsers) {
+            const similarUserTransfers = allTxIHistory.get(similarUser.addr);
+
+            if (similarUserTransfers) {
+                promises.push(
+                    new Promise(async (resolve) => {
+                        const dist = await computeDistanceAccounts(
+                            similarUserTransfers,
+                            userHistory
+                        );
+                        resolve({ distance: dist, account: similarUser });
+                    })
                 );
-                resolve({ distance: dist, account: similarUser });
-            })
-        );
-    }
-    const distanceMetrics = await Promise.all(promises);
+            }
+        }
+        return Promise.all(promises);
+    });
     distanceMetrics.sort((a: DistAccount, b: DistAccount) =>
         a.distance < b.distance ? -1 : a.distance === b.distance ? 0 : 1
     );
-    console.log("metrics: ", distanceMetrics);
     return distanceMetrics.slice(0, 100);
 }
 
@@ -124,93 +138,108 @@ function computeDistanceTransfers(transferA: TxI[], transferB: TxI[]): number {
 }
 
 async function computeDistanceAccounts(
-    compareToAddress: string,
+    compareToTransfers: TxI[],
     userTransfers: TxI[]
 ): Promise<number> {
-    const compareToTransfers = await getUserTxHistory(compareToAddress);
     return computeDistanceTransfers(compareToTransfers, userTransfers);
 }
-
-const getUserTxHistory = async (address: string): Promise<TxI[]> => {
-    const transfers: TxI[] = [];
-    const res =
-        await executeReadQuery(`MATCH (acc:User {addr: '${address}'})-[transaction:To]->(child:Contract)
-    RETURN transaction`);
-    for (const edge of res.records) {
-        const neo4jReadResult = edge as unknown as Neo4JReadResult;
-        const maybeTransfer = neo4jReadResult._fields[0].properties;
-
-        if (isTransfer(maybeTransfer)) {
-            console.log("transfer", maybeTransfer);
-            transfers.push(maybeTransfer);
-        }
-    }
-    return transfers;
-};
 
 export const generateRecommendationForAddr = async (addr: string) => {
     //check it exists in the graph
     await init();
-    await converter.loadCaches();
-    ``;
+    const friendTxITransactions: Map<String, TxI[]> = new Map();
+
     //get users that have interacted the same contracts as the current address
     const res =
-        await executeReadQuery(`MATCH (acc:User {addr: '${addr}'})-[:To]->(child:Contract)<-[:To]-(friend:User)
-                                RETURN friend`);
+        await executeReadQuery(`MATCH (acc:User {addr: '${addr}'})-[:To]->(child:Contract)<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
+                                WHERE NOT (acc)-[:To]->(contract)
+                                RETURN friend, otherTransaction, contract`);
+
     if (res.records.length < 2) {
         //Do stuff to query current user and add their friends to the graph
     } else {
-        const similarUsers: Account[] = res.records.map((el) => {
-            const neo4jReadResult = el as unknown as Neo4JReadResult;
-            const maybeAccount = neo4jReadResult._fields[0].properties;
+        const similarUsers: Account[] = [];
 
-            if (isAccount(maybeAccount)) {
-                return { addr: maybeAccount.addr };
-            } else {
-                throw new Error("Should have been an account");
+        res.records.map((el) => {
+            const neo4jReadResult = el as unknown as Neo4JReadResult;
+            const fromAddressMaybe = neo4jReadResult._fields[0]
+                .properties as Account;
+            const edge = neo4jReadResult._fields[1].properties as TxI;
+
+            if (isAccount(fromAddressMaybe)) {
+                similarUsers.push({ addr: fromAddressMaybe.addr });
+                edge.from = fromAddressMaybe.addr;
+            }
+
+            if (neo4jReadResult._fields.length === 3) {
+                edge.to = (
+                    neo4jReadResult._fields[2].properties as Account
+                ).addr;
+                const maybePrevTransactions = friendTxITransactions.get(
+                    fromAddressMaybe.addr
+                );
+                if (maybePrevTransactions) {
+                    maybePrevTransactions.push(edge);
+                } else {
+                    friendTxITransactions.set(fromAddressMaybe.addr, [edge]);
+                }
             }
         });
-        const ranks = await rankResults({ addr }, similarUsers);
-        const promises: Promise<string[]>[] = [];
-        for (const rank of ranks) {
-            promises.push(
-                new Promise(async (resolve) => {
-                    const similarSmartContracts = await executeReadQuery(
-                        `MATCH (acc:User {addr: '${rank.account.addr}'})-[:To]->(child:Contract)
-                 RETURN child
-                 LIMIT 20
-                 `
-                    );
-                    const currentRecommendedSmartContracts: string[] = [];
-                    similarSmartContracts.records.map(async (el) => {
-                        const neo4jReadResult =
-                            el as unknown as Neo4JReadResult;
-                        const maybeAccount =
-                            neo4jReadResult._fields[0].properties;
+        console.log(friendTxITransactions.size);
 
-                        if (isAccount(maybeAccount)) {
-                            const name = await getContractNameScrape(
-                                maybeAccount.addr
-                            );
-                            if (
-                                name ===
-                                '<!doctype html>\n<html lang="en">\n<head><title>'
-                            ) {
-                                currentRecommendedSmartContracts.push(
-                                    maybeAccount.addr
-                                );
+        const ranks = await rankResults(
+            { addr },
+            similarUsers,
+            friendTxITransactions
+        );
+
+        console.log("done with ranking");
+
+        //recommend all 20 smart contracts of the most similar users
+        const responses = await limiter.schedule(() => {
+            const promises: Promise<string[]>[] = [];
+
+            for (const rank of ranks) {
+                promises.push(
+                    new Promise(async (resolve) => {
+                        const similarSmartContracts = await executeReadQuery(
+                            `MATCH (acc:User {addr: '${rank.account.addr}'})-[:To]->(child:Contract)
+                             RETURN child
+                             LIMIT 20
+                 `
+                        );
+
+                        const currentRecommendedSmartContracts: string[] = [];
+                        similarSmartContracts.records.map(async (el) => {
+                            const neo4jReadResult =
+                                el as unknown as Neo4JReadResult;
+                            const maybeAccount =
+                                neo4jReadResult._fields[0].properties;
+
+                            if (isAccount(maybeAccount)) {
+                                //FIXME: use Katz's code from the CSV here
+                                const name = maybeAccount.addr;
+
+                                if (
+                                    name.startsWith("<!doctype html>") ||
+                                    name.startsWith("<!DOCTYPE")
+                                ) {
+                                    currentRecommendedSmartContracts.push(
+                                        maybeAccount.addr
+                                    );
+                                } else {
+                                    currentRecommendedSmartContracts.push(name);
+                                }
                             } else {
-                                currentRecommendedSmartContracts.push(name);
+                                throw new Error("should not happen");
                             }
-                        } else {
-                            throw new Error("should not happen");
-                        }
-                        resolve(currentRecommendedSmartContracts);
-                    });
-                })
-            );
-        }
-        const responses = await Promise.all(promises);
+                            resolve(currentRecommendedSmartContracts);
+                        });
+                    })
+                );
+            }
+            return Promise.all(promises);
+        });
         console.log("done");
         return [
             ...new Set(
@@ -221,8 +250,6 @@ export const generateRecommendationForAddr = async (addr: string) => {
         ];
     }
 };
-
-const converter = new Converter();
 
 interface Neo4JReadResult {
     keys: string[];

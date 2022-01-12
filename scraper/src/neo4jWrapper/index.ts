@@ -1,7 +1,8 @@
 import dotenv from "dotenv";
-import neo4j from "neo4j-driver";
+import neo4j, { Config } from "neo4j-driver";
 import { delay } from "../util";
 dotenv.config({ path: "src/.env" });
+
 export const driver = neo4j.driver(
     `${process.env.NEO4J_URI}`,
     neo4j.auth.basic(
@@ -101,7 +102,7 @@ export async function init() {
 
 export async function executeReadQuery(query: string) {
     const session = driver.session();
-    return session.readTransaction((tx: typeof neo4j.Transaction) =>
-        tx.run(query)
-    );
+    return session
+        .readTransaction((tx: typeof neo4j.Transaction) => tx.run(query))
+        .finally(() => session.close());
 }
