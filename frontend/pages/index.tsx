@@ -10,6 +10,7 @@ import { useAppContext } from "../components/context";
 import { useEffect, useState } from "react";
 import constants from "../constants";
 import { utils } from "ethers";
+import useDebounce from "../hooks/useDebounce";
 
 const Graph = dynamic(() => import("../components/graph"), { ssr: false });
 
@@ -19,9 +20,11 @@ const Home: NextPage = () => {
   const [recommended, setRecommended] = useState<Array<any>>([]);
   const [hot, setHot] = useState<Array<any>>([]);
 
+  const debouncedAddress = useDebounce(address, 1000);
+
   useEffect(() => {
     setAddress(context.address ?? "");
-  }, [context]);
+  }, []);
 
   useEffect(() => {
     // Get hot contracts
@@ -48,7 +51,7 @@ const Home: NextPage = () => {
       setRecommended(results);
     };
     f();
-  }, [address]);
+  }, [debouncedAddress]);
 
   return (
     <div className={styles.container}>
