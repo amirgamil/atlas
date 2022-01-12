@@ -151,7 +151,7 @@ const getUserTxHistory = async (address: string): Promise<TxI[]> => {
 export const generateRecommendationForAddr = async (addr: string) => {
     //check it exists in the graph
     //await init();
-    await converter.loadCaches();
+    //await converter.loadCaches();
     ``;
     //get users that have interacted the same contracts as the current address
     const res =
@@ -159,6 +159,7 @@ export const generateRecommendationForAddr = async (addr: string) => {
                                 RETURN friend`);
     if (res.records.length < 2) {
         //Do stuff to query current user and add their friends to the graph
+        return new Set();
     } else {
         const similarUsers: Account[] = res.records.map((el) => {
             const neo4jReadResult = el as unknown as Neo4JReadResult;
