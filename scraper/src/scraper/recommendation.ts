@@ -51,7 +51,6 @@ async function rankResults(currentUser: Account, listOfUsers: Account[]) {
     distanceMetrics.sort((a: DistAccount, b: DistAccount) =>
         a.distance < b.distance ? -1 : a.distance === b.distance ? 0 : 1
     );
-    console.log("metrics: ", distanceMetrics);
     return distanceMetrics.slice(0, 100);
 }
 
@@ -146,7 +145,6 @@ const getUserTxHistory = async (address: string): Promise<TxI[]> => {
         const maybeTransfer = neo4jReadResult._fields[0].properties;
 
         if (isTransfer(maybeTransfer)) {
-            console.log("transfer", maybeTransfer);
             transfers.push(maybeTransfer);
         }
     }

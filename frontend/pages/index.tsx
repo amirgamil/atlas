@@ -47,7 +47,6 @@ const Home: NextPage = () => {
       );
       const json = await res.json();
       const results = json.results ?? [];
-      console.log(results);
       setRecommended(results);
     };
     f();
