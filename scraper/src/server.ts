@@ -1,6 +1,10 @@
 import express from "express";
 import cors from "cors";
-import { generateRecommendationForAddr, getHotContracts } from "./scraper/recommendation";
+import {
+    generateRecommendationForAddr,
+    getHotContracts,
+} from "./scraper/recommendation";
+import { converter } from "./util";
 
 const app = express();
 //CHANGE FOR PROD
@@ -26,11 +30,11 @@ app.get("/recommend", async (req, res, next) => {
 
 app.get("/hot", async (req, res) => {
     try {
-        console.log("getting results")
+        console.log("getting results");
         const results = await getHotContracts(10);
-        res.json({results})
+        res.json({ results });
     } catch (err: any) {
-        console.log(err)
+        console.log(err);
         res.status(503).send("Error");
     }
 });
@@ -38,4 +42,5 @@ app.get("/hot", async (req, res) => {
 //make sure that the server is running
 app.listen(3001, () => {
     console.log(`Server is up at port ${3001}`);
+    converter.loadCaches();
 });

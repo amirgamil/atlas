@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Converter } from "./scraper/scraper";
 export const delay = (s: number) =>
     new Promise((resolve) => setTimeout(resolve, s * 1000));
 
@@ -74,3 +75,5 @@ export const getContractNameScrapeTest = async () => {
         await delay(3);
     }
 };
+
+export const converter = new Converter();

@@ -1,7 +1,8 @@
 import dotenv from "dotenv";
-import neo4j from "neo4j-driver";
+import neo4j, { Config } from "neo4j-driver";
 import { delay } from "../util";
 dotenv.config({ path: "src/.env" });
+
 export const driver = neo4j.driver(
     `${process.env.NEO4J_URI}`,
     neo4j.auth.basic(
@@ -12,6 +13,7 @@ export const driver = neo4j.driver(
 
 export interface Account {
     addr: string;
+    isUser: boolean;
 }
 
 export interface TxI {
@@ -70,13 +72,7 @@ export async function createTx(tx: typeof neo4j.Transaction, data: TxI) {
         r.value = r.value + $value
     RETURN p
     `;
-    while (true) {
-        try {
-            return tx.run(template, data);
-        } catch {
-            await delay(1 + Math.random());
-        }
-    }
+    return tx.run(template, data);
 }
 
 export function createMultipleTx(data: TxI[]) {
@@ -101,7 +97,7 @@ export async function init() {
 
 export async function executeReadQuery(query: string) {
     const session = driver.session();
-    return session.readTransaction((tx: typeof neo4j.Transaction) =>
-        tx.run(query)
-    );
+    return session
+        .readTransaction((tx: typeof neo4j.Transaction) => tx.run(query))
+        .finally(() => session.close());
 }
