@@ -5,8 +5,7 @@ import { Payload } from "./types";
 import dotenv from "dotenv";
 import { Converter } from "./scraper";
 import { getContractNameScrape } from "../util";
-import express from "express"
-// import { QueryResult } from "neo4j-driver";
+
 dotenv.config({
     path: "./src/.env",
 });
@@ -18,7 +17,6 @@ interface DistAccount {
 
 //given list of user accounts, computes distance from root user
 async function rankResults(currentUser: Account, listOfUsers: Account[]) {
-    const distanceMetrics: DistAccount[] = [];
     const payload: Payload = {
         jsonrpc: "2.0",
         method: "alchemy_getAssetTransfers",
@@ -32,19 +30,24 @@ async function rankResults(currentUser: Account, listOfUsers: Account[]) {
         ],
     };
     const userHistory = await getTransactionsWithPagination(payload);
-    let userSubset = listOfUsers.slice(0, 48);
-    for (const similarUser of userSubset) {
-        const dist = await computeDistanceAccounts(
-            similarUser.addr,
-            userHistory
+    const promises: Promise<DistAccount>[] = [];
+    for (const similarUser of listOfUsers) {
+        promises.push(
+            new Promise(async (resolve) => {
+                const dist = await computeDistanceAccounts(
+                    similarUser.addr,
+                    userHistory
+                );
+                resolve({ distance: dist, account: similarUser });
+            })
         );
-        distanceMetrics.push({ distance: dist, account: similarUser });
     }
+    const distanceMetrics = await Promise.all(promises);
     distanceMetrics.sort((a: DistAccount, b: DistAccount) =>
         a.distance < b.distance ? -1 : a.distance === b.distance ? 0 : 1
     );
     console.log("metrics: ", distanceMetrics);
-    return distanceMetrics.slice(0, 5);
+    return distanceMetrics.slice(0, 100);
 }
 
 async function getTransactionsWithPagination(payload: Payload): Promise<TxI[]> {
@@ -89,6 +92,7 @@ const calcDifferenceAccounts = (accountOne: TxI, accountTwo: TxI) => {
     if (!accountOne.value || !accountTwo.value) {
         return 1;
     }
+    //FIXME: make this more intelligent
     const val1 = accountOne.value.valueOf();
     const val2 = accountOne.value.valueOf();
     return (
@@ -122,7 +126,7 @@ function computeDistanceTransfers(transferA: TxI[], transferB: TxI[]): number {
 async function computeDistanceAccounts(
     compareToAddress: string,
     userTransfers: TxI[]
-) {
+): Promise<number> {
     const compareToTransfers = await getUserTxHistory(compareToAddress);
     return computeDistanceTransfers(compareToTransfers, userTransfers);
 }
@@ -132,7 +136,6 @@ const getUserTxHistory = async (address: string): Promise<TxI[]> => {
     const res =
         await executeReadQuery(`MATCH (acc:User {addr: '${address}'})-[transaction:To]->(child:Contract)
     RETURN transaction`);
-    console.log("alchemy response length: ", res.records.length);
     for (const edge of res.records) {
         const neo4jReadResult = edge as unknown as Neo4JReadResult;
         const maybeTransfer = neo4jReadResult._fields[0].properties;
@@ -164,31 +167,58 @@ export const generateRecommendationForAddr = async (addr: string) => {
             if (isAccount(maybeAccount)) {
                 return { addr: maybeAccount.addr };
             } else {
-                console.log("acc: ", maybeAccount);
                 throw new Error("Should have been an account");
             }
         });
         const ranks = await rankResults({ addr }, similarUsers);
-        const recommendedSmartContracts: Account[] = [];
+        const promises: Promise<string[]>[] = [];
         for (const rank of ranks) {
-            const similarSmartContracts = await executeReadQuery(
-                `MATCH (acc:User {addr: '${rank.account.addr}'})-[:To]->(child:Contract)
+            promises.push(
+                new Promise(async (resolve) => {
+                    const similarSmartContracts = await executeReadQuery(
+                        `MATCH (acc:User {addr: '${rank.account.addr}'})-[:To]->(child:Contract)
                  RETURN child
-                 LIMIT 2
+                 LIMIT 20
                  `
-            );
-            similarSmartContracts.records.map((el) => {
-                const neo4jReadResult = el as unknown as Neo4JReadResult;
-                const maybeAccount = neo4jReadResult._fields[0].properties;
+                    );
+                    const currentRecommendedSmartContracts: string[] = [];
+                    similarSmartContracts.records.map(async (el) => {
+                        const neo4jReadResult =
+                            el as unknown as Neo4JReadResult;
+                        const maybeAccount =
+                            neo4jReadResult._fields[0].properties;
 
-                if (isAccount(maybeAccount)) {
-                    recommendedSmartContracts.push(maybeAccount);
-                } else {
-                    throw new Error("should not happen");
-                }
-            });
+                        if (isAccount(maybeAccount)) {
+                            const name = await getContractNameScrape(
+                                maybeAccount.addr
+                            );
+                            if (
+                                name ===
+                                '<!doctype html>\n<html lang="en">\n<head><title>'
+                            ) {
+                                currentRecommendedSmartContracts.push(
+                                    maybeAccount.addr
+                                );
+                            } else {
+                                currentRecommendedSmartContracts.push(name);
+                            }
+                        } else {
+                            throw new Error("should not happen");
+                        }
+                        resolve(currentRecommendedSmartContracts);
+                    });
+                })
+            );
         }
-        return recommendedSmartContracts;
+        const responses = await Promise.all(promises);
+        console.log("done");
+        return [
+            ...new Set(
+                responses.reduce((prev, current) => {
+                    return [...prev, ...current];
+                }, [])
+            ),
+        ];
     }
 };
 
