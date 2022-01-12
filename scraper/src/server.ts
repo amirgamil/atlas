@@ -12,9 +12,10 @@ app.use(
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.post("/recommend", async (req, res, next) => {
+app.get("/recommend", async (req, res, next) => {
     try {
-        const address: string = req.body.address;
+        // @ts-ignore
+        const address: string = req.query.address;
         const results = await generateRecommendationForAddr(address);
         res.json({ results });
     } catch (ex: unknown) {

@@ -5,6 +5,7 @@ import { Payload } from "./types";
 import dotenv from "dotenv";
 import { Converter } from "./scraper";
 import { getContractNameScrape } from "../util";
+import express from "express"
 // import { QueryResult } from "neo4j-driver";
 dotenv.config({
     path: "./src/.env",
