@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import { converter } from "../util";
 import PromisePool from "es6-promise-pool";
 import Bottleneck from "bottleneck";
+import getName from "../names";
 
 dotenv.config({
     path: "./src/.env",
@@ -221,8 +222,7 @@ export const generateRecommendationForAddr = async (addr: string) => {
                                 neo4jReadResult._fields[0].properties;
 
                             if (isAccount(maybeAccount)) {
-                                //FIXME: use Katz's code from the CSV here
-                                const name = maybeAccount.addr;
+                                const name = getName(maybeAccount.addr);
 
                                 if (
                                     name.startsWith("<!doctype html>") ||
