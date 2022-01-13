@@ -1,5 +1,24 @@
 import axios from "axios";
 import { Converter } from "./scraper/scraper";
+
+interface BlockscoutTokenResponse {
+    balance: string;
+    contractAddress: string;
+    decimals: string;
+    name: string;
+    symbol: string;
+    type: string;
+};
+
+interface TokenBalance {
+    balance: Number;
+    contractAddress: string;
+    name: string;
+    symbol: string;
+    type: string;
+};
+  
+
 export const delay = (s: number) =>
     new Promise((resolve) => setTimeout(resolve, s * 1000));
 
@@ -41,6 +60,24 @@ export const getContractNameScrape = async (addr: string) => {
         return addr
     }
 };
+
+export const getTokensForAddress = async (addr: string): Promise<Array<TokenBalance>> => {
+    const res = await axios.get(`https://blockscout.com/eth/mainnet/api?module=account&action=tokenlist&address=${addr}`);
+    if(res.status === 200 && res.data.message === "OK") {
+        const tokens = res.data.result;
+        return tokens.map((token: BlockscoutTokenResponse) => {
+            const decimals = token.decimals !== "" ? Number(token.decimals) : 0;
+            return {
+                balance: Number(token.balance) / 10**decimals,
+                contractAddress: token.contractAddress,
+                name: token.name,
+                symbol: token.symbol,
+                type: token.type
+            }
+        });
+    }
+    return [];
+}
 
 export const getContractNameScrapeTest = async () => {
     const addresses = [

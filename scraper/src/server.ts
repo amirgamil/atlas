@@ -5,7 +5,7 @@ import {
     getHotContracts,
     getSimilarContracts,
 } from "./scraper/recommendation";
-import { converter } from "./util";
+import { converter, getTokensForAddress } from "./util";
 import { init } from "./neo4jWrapper";
 
 const app = express();
@@ -57,6 +57,16 @@ app.get("/similar-neighbors", async (req, res) => {
         res.status(503).send("Error");
     }
 });
+
+app.get("/tokens", async (req, res) => {
+    try {
+        const address = req.query.address as string;
+        const tokens = await getTokensForAddress(address);
+        res.json(tokens);
+    } catch(err: any) {
+        res.status(503).send("Error");
+    }
+})
 
 //make sure that the server is running
 app.listen(3001, () => {
