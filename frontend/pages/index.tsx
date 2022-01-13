@@ -9,8 +9,9 @@ import SafeHydrate from "../components/safehydrate";
 import { useAppContext } from "../components/context";
 import { useEffect, useState } from "react";
 import constants from "../constants";
-import getName from "../names";
 import axios from "axios";
+import { utils } from "ethers";
+import useDebounce from "../hooks/useDebounce";
 
 const Graph = dynamic(() => import("../components/graph"), { ssr: false });
 

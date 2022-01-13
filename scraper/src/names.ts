@@ -15001,8 +15001,8 @@ const names: Record<string, Record<string, string>> = {
   },
 };
 
-const getName = (addr: string) => {
-  return names[addr] ?? addr;
+const getName = (addr: string): string => {
+  return names[addr].name ?? addr;
 };
 
 export default getName;

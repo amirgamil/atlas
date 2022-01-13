@@ -3,6 +3,7 @@ import cors from "cors";
 import {
     generateRecommendationForAddr,
     getHotContracts,
+    getSimilarContracts,
 } from "./scraper/recommendation";
 import { converter } from "./util";
 import { init } from "./neo4jWrapper";
@@ -40,6 +41,17 @@ app.get("/hot", async (req, res) => {
         console.log("getting results");
         const results = await getHotContracts(10);
         res.json({ results });
+    } catch (err: any) {
+        console.log(err);
+        res.status(503).send("Error");
+    }
+});
+
+app.get("/similar-neighbors", async (req, res) => {
+    try {
+        const address = req.query.address as string;
+        const similar = await getSimilarContracts(address);
+        res.json(similar);
     } catch (err: any) {
         console.log(err);
         res.status(503).send("Error");
