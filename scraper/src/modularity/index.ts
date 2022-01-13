@@ -75,6 +75,20 @@ function wrap(name: string, opcodes: OpCode[]) {
     })
 }
 
+export async function batchCompare(main: string, contracts: Array<string>) {
+    // Returns list of addresses, sorted desc by Jaccard similarity
+    const mainBytecode = await getByteCode(main);
+    const byteCodes = await Promise.all(contracts.map(a => getByteCode(a)));
+
+    const out = byteCodes.map((c, i) => ({
+        address: contracts[i],
+        score: jaccardIndex(getSigHashes(mainBytecode), getSigHashes(c))
+    }));
+
+    out.sort((a, b) => b.score - a.score);
+    return out
+}
+
 async function main() {
     const cryptokitties = await getByteCode("0x06012c8cf97bead5deae237070f9587f8e7a266d")
     const bridge1 = await getByteCode("0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f")
@@ -94,4 +108,4 @@ async function main() {
     })
 }
 
-main()
+// main()

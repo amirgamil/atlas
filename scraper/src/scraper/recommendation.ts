@@ -7,6 +7,7 @@ import { converter } from "../util";
 import PromisePool from "es6-promise-pool";
 import Bottleneck from "bottleneck";
 import getName from "../names";
+import { batchCompare } from "../modularity/index"
 
 dotenv.config({
     path: "./src/.env",
@@ -253,6 +254,16 @@ export const generateRecommendationForAddr = async (addr: string) => {
         ];
     }
 };
+
+export const getSimilarContracts = async(addr: string) => {
+    const res = await executeReadQuery(`
+        MATCH (acc:Contract {addr: '${addr}'})<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
+        WHERE NOT (acc)-[:To]->(contract)
+        RETURN contract
+    `);
+    const addresses = Array.from(new Set(res.records.map((r) => r.get("contract").properties.addr)));
+    return await batchCompare(addr, addresses);
+}
 
 export const getHotContracts = async (n: number) => {
     const res = await executeReadQuery(`
