@@ -3,6 +3,7 @@ import {
     Account,
     createMultipleTx,
     executeReadQuery,
+    init,
     TxI,
 } from "../neo4jWrapper/index";
 import { Response, AccountResponse } from "./types";
@@ -10,8 +11,9 @@ import { Payload } from "./types";
 import dotenv from "dotenv";
 import { converter } from "../util";
 import Bottleneck from "bottleneck";
-import getName, { getAccountResponse } from "../names";
+import { getAccountResponse } from "../names";
 import { batchCompare } from "../modularity/index";
+import { QueryResult } from "neo4j-driver";
 
 dotenv.config({
     path: "./src/.env",
@@ -30,7 +32,8 @@ const limiter = new Bottleneck({
 async function rankResults(
     currentUser: Account,
     listOfUsers: Account[],
-    allTxIHistory: Map<String, TxI[]>
+    allTxIHistory: Map<String, TxI[]>,
+    userHistory?: TxI[]
 ) {
     const payload: Payload = {
         jsonrpc: "2.0",
@@ -44,9 +47,17 @@ async function rankResults(
             },
         ],
     };
-    const userHistory = await getTransactionsWithPagination(payload);
+    if (!userHistory) {
+        userHistory = await getTransactionsWithPagination(payload);
+    }
+
     const distanceMetrics = await limiter.schedule(() => {
+        if (!userHistory) {
+            return Promise.reject(new Error("User history should defined"));
+        }
+        const definedUserHist = userHistory;
         const promises: Promise<DistAccount>[] = [];
+
         for (const similarUser of listOfUsers) {
             const similarUserTransfers = allTxIHistory.get(similarUser.addr);
 
@@ -55,7 +66,7 @@ async function rankResults(
                     new Promise(async (resolve) => {
                         const dist = await computeDistanceAccounts(
                             similarUserTransfers,
-                            userHistory
+                            definedUserHist
                         );
                         resolve({ distance: dist, account: similarUser });
                     })
@@ -79,16 +90,23 @@ async function getTransactionsWithPagination(
         payload
     );
 
-    if (!transactions.data.result.transfers) {
-        console.log("uh oh: ", transactions.data.result);
+    //FIXME: I don't understand why this sometimes happens, maybe it's an Alchemy thing
+    if (!transactions.data.result) {
+        return [];
     }
 
+    await converter.setAccountTypes([
+        transactions.data.result.transfers[0].from,
+    ]);
     const transfers: TxI[] = transactions.data.result.transfers.map(
         converter.mapTxData
     );
     let pageKey = transactions.data.result.pageKey;
 
-    while (pageKey !== undefined && paginate) {
+    let count = 0;
+
+    //set a limit on number of paginations to prevent crashing the server
+    while (pageKey !== undefined && paginate && count < 4) {
         payload.params[0].pageKey = pageKey;
         const next = await axios.post<Response>(
             `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
@@ -100,6 +118,7 @@ async function getTransactionsWithPagination(
             );
         }
         pageKey = next.data.result.pageKey;
+        count += 1;
     }
     return transfers;
 }
@@ -152,6 +171,12 @@ async function computeDistanceAccounts(
     return computeDistanceTransfers(compareToTransfers, userTransfers);
 }
 
+async function computeFriendsAndContracts(addr: string) {
+    return await executeReadQuery(`MATCH (acc:User {addr: '${addr}'})-[:To]->(child:Contract)<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
+                                WHERE NOT (acc)-[:To]->(contract)
+                                RETURN friend, otherTransaction, contract`);
+}
+
 export const generateRecommendationForAddr = async (
     addr: string
 ): Promise<AccountResponse[]> => {
@@ -159,13 +184,10 @@ export const generateRecommendationForAddr = async (
     const friendTxITransactions: Map<String, TxI[]> = new Map();
 
     //get users that have interacted the same contracts as the current address
-    const res =
-        await executeReadQuery(`MATCH (acc:User {addr: '${addr}'})-[:To]->(child:Contract)<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
-                                WHERE NOT (acc)-[:To]->(contract)
-                                RETURN friend, otherTransaction, contract`);
+    const res = await computeFriendsAndContracts(addr);
 
     if (res.records.length === 0) {
-        //add current user and their transactions to the graph
+        // add current user and their transactions to the graph
         const payload: Payload = {
             jsonrpc: "2.0",
             method: "alchemy_getAssetTransfers",
@@ -179,97 +201,110 @@ export const generateRecommendationForAddr = async (
             ],
         };
         const transactions = await getTransactionsWithPagination(payload, true);
-        await createMultipleTx(transactions);
 
-        return [];
-    } else {
-        const similarUsers: Account[] = [];
-
-        res.records.map((el) => {
-            const neo4jReadResult = el as unknown as Neo4JReadResult;
-            const fromAddressMaybe = neo4jReadResult._fields[0]
-                .properties as Account;
-            const edge = neo4jReadResult._fields[1].properties as TxI;
-
-            if (isAccount(fromAddressMaybe)) {
-                similarUsers.push({
-                    addr: fromAddressMaybe.addr,
-                    isUser: true,
-                });
-                edge.from = fromAddressMaybe.addr;
-            }
-
-            if (neo4jReadResult._fields.length === 3) {
-                edge.to = (
-                    neo4jReadResult._fields[2].properties as Account
-                ).addr;
-
-                const maybePrevTransactions = friendTxITransactions.get(
-                    fromAddressMaybe.addr
-                );
-
-                if (maybePrevTransactions) {
-                    maybePrevTransactions.push(edge);
-                } else {
-                    friendTxITransactions.set(fromAddressMaybe.addr, [edge]);
-                }
-            }
-        });
-        console.log(friendTxITransactions.size);
-
-        const ranks = await rankResults(
-            { addr, isUser: true },
-            similarUsers,
+        const newTransaction = await createMultipleTx(transactions);
+        console.log("new transaction: ", newTransaction);
+        //TODO: fix deadlock issues and make faster
+        const res = await computeFriendsAndContracts(addr.toLowerCase());
+        return await getAndRankContracts(
+            addr.toLowerCase(),
+            res,
             friendTxITransactions
         );
+    } else {
+        return await getAndRankContracts(addr, res, friendTxITransactions);
+    }
+};
 
-        console.log("done with ranking");
+const getAndRankContracts = async (
+    addr: string,
+    res: QueryResult,
+    friendTxITransactions: Map<String, TxI[]>
+) => {
+    const similarUsers: Account[] = [];
 
-        //recommend all 20 smart contracts of the most similar users
-        const responses = await limiter.schedule(() => {
-            const promises: Promise<AccountResponse[]>[] = [];
+    res.records.map((el) => {
+        const neo4jReadResult = el as unknown as Neo4JReadResult;
+        const fromAddressMaybe = neo4jReadResult._fields[0]
+            .properties as Account;
+        const edge = neo4jReadResult._fields[1].properties as TxI;
 
-            for (const rank of ranks) {
-                promises.push(
-                    new Promise(async (resolve) => {
-                        const similarSmartContracts = await executeReadQuery(
-                            `MATCH (acc:User {addr: '${rank.account.addr}'})-[:To]->(child:Contract)
+        if (isAccount(fromAddressMaybe)) {
+            similarUsers.push({
+                addr: fromAddressMaybe.addr,
+                isUser: true,
+            });
+            edge.from = fromAddressMaybe.addr;
+        }
+
+        if (neo4jReadResult._fields.length === 3) {
+            edge.to = (neo4jReadResult._fields[2].properties as Account).addr;
+
+            const maybePrevTransactions = friendTxITransactions.get(
+                fromAddressMaybe.addr
+            );
+
+            if (maybePrevTransactions) {
+                maybePrevTransactions.push(edge);
+            } else {
+                friendTxITransactions.set(fromAddressMaybe.addr, [edge]);
+            }
+        }
+    });
+    console.log(friendTxITransactions.size);
+
+    const ranks = await rankResults(
+        { addr, isUser: true },
+        similarUsers,
+        friendTxITransactions
+    );
+
+    console.log("done with ranking");
+
+    //recommend all 20 smart contracts of the most similar users
+    const responses = await limiter.schedule(() => {
+        const promises: Promise<AccountResponse[]>[] = [];
+
+        for (const rank of ranks) {
+            promises.push(
+                new Promise(async (resolve) => {
+                    const similarSmartContracts = await executeReadQuery(
+                        `MATCH (acc:User {addr: '${rank.account.addr}'})-[:To]->(child:Contract)
                              RETURN child
                              LIMIT 20
                  `
-                        );
+                    );
 
-                        const currentRecommendedSmartContracts: AccountResponse[] =
-                            [];
-                        similarSmartContracts.records.map(async (el) => {
-                            const neo4jReadResult =
-                                el as unknown as Neo4JReadResult;
-                            const maybeAccount =
-                                neo4jReadResult._fields[0].properties;
+                    const currentRecommendedSmartContracts: AccountResponse[] =
+                        [];
+                    similarSmartContracts.records.map(async (el) => {
+                        const neo4jReadResult =
+                            el as unknown as Neo4JReadResult;
+                        const maybeAccount =
+                            neo4jReadResult._fields[0].properties;
 
-                            if (isAccount(maybeAccount)) {
-                                currentRecommendedSmartContracts.push(
-                                    getAccountResponse(maybeAccount.addr)
-                                );
-                            } else {
-                                throw new Error("should not happen");
-                            }
-                            resolve(currentRecommendedSmartContracts);
-                        });
-                    })
-                );
-            }
-            return Promise.all(promises);
-        });
-        console.log("done");
-        return [
-            ...new Set(
-                responses.reduce((prev: any, current: any) => {
-                    return [...prev, ...current];
-                }, [])
-            ),
-        ].slice(0, 20);
-    }
+                        if (isAccount(maybeAccount)) {
+                            currentRecommendedSmartContracts.push(
+                                getAccountResponse(maybeAccount.addr)
+                            );
+                        } else {
+                            throw new Error("should not happen");
+                        }
+                        resolve(currentRecommendedSmartContracts);
+                    });
+                })
+            );
+        }
+        return Promise.all(promises);
+    });
+
+    return [
+        ...new Set(
+            responses.reduce((prev: any, current: any) => {
+                return [...prev, ...current];
+            }, [])
+        ),
+    ].slice(0, 20);
 };
 
 export const getSimilarContracts = async (addr: string) => {
