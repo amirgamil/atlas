@@ -18,3 +18,17 @@ a {
 * {
   box-sizing: border-box;
 }
+
+h1, h2, h3, p, a {
+  font-family: Poppins;
+}
+
+h1, h2, h3 {
+  font-weight: 700;
+}
+
+.text-gradient {
+  background: linear-gradient(to right, #30CFD0, #c43ad6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
