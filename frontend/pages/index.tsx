@@ -31,9 +31,13 @@ const Home: NextPage = () => {
     useEffect(() => {
         // Get hot contracts
         const f = async () => {
-            const res = await axios.get<Response>(`${constants.serverUri}/hot`);
-            const results = res.data.results;
-            setHot(results);
+            try {
+                const res = await axios.get<Response>(`${constants.serverUri}/hot`);
+                const results = res.data.results;
+                setHot(results);
+            } catch(err: any) {
+                console.log(err);
+            }
         };
 
         setAddress(context.address ?? "");
@@ -62,7 +66,7 @@ const Home: NextPage = () => {
                                 name="name"
                                 id="name"
                                 className="h-16 ring-offset-2 outline-none ring-2 block w-full sm:text-sm p-4"
-                                placeholder="Contract Address"
+                                placeholder="Your Address"
                                 value={address}
                                 onChange={(e) => setAddress(e.target.value)}
                             />
@@ -76,17 +80,21 @@ const Home: NextPage = () => {
                                 className="rounded-md px-4 py-3 text-md"
                                 onClick={async () => {
                                     setLoading(true);
-                                    const recommendations =
-                                        await axios.get<Response>(
-                                            "http://localhost:3001/recommend",
-                                            {
-                                                params: { address: address },
-                                            }
+                                    try {
+                                        const recommendations =
+                                            await axios.get<Response>(
+                                                "http://localhost:3001/recommend",
+                                                {
+                                                    params: { address: address },
+                                                }
+                                            );
+                                        console.log("recommended: ", recommended);
+                                        setRecommended(
+                                            recommendations.data.results
                                         );
-                                    console.log("recommended: ", recommended);
-                                    setRecommended(
-                                        recommendations.data.results
-                                    );
+                                    } catch(err: any) {
+                                        alert(err);
+                                    }
                                     setLoading(false);
                                 }}
                             >
