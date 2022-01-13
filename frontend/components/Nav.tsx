@@ -1,9 +1,11 @@
-import { useAppContext } from "./context";
+import { useAppContext } from "./Context";
 import Image from 'next/image'
 import Link from 'next/link'
+import {useRouter} from "next/router";
 
 const Nav = () => {
   const context = useAppContext();
+  const router = useRouter()
 
   return (
     <div className="w-full pt-8 h-26 flex text-white">
@@ -37,10 +39,10 @@ const Nav = () => {
         </>}
         <button
           className="cursor-pointer"
-          onClick={context.openModal}
+          onClick={context.address ? () => {} : context.openModal}
         >
           {context.address
-            ? `My Wallet: ${context.address.slice(0, 6).toLowerCase()}..`
+            ? `${context.address.slice(0, 8).toLowerCase()}...`
             : "Sign In"}
         </button>
       </div>
