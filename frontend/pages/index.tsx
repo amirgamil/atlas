@@ -3,9 +3,9 @@ import Head from "next/head";
 import styles from "../styles/Home.module.css";
 import dynamic from "next/dynamic";
 
-import Nav from "../components/nav";
-import SafeHydrate from "../components/safehydrate";
-import { useAppContext } from "../components/context";
+import Nav from "../components/Nav";
+import SafeHydrate from "../components/SafeHydrate";
+import { useAppContext } from "../components/Context";
 import { useEffect, useState } from "react";
 import constants from "../constants";
 import axios from "axios";
