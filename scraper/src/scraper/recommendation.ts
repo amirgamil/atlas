@@ -16,6 +16,11 @@ interface DistAccount {
     account: Account;
 }
 
+interface AccountResponse {
+    address: string;
+    name?: string;
+}
+
 const limiter = new Bottleneck({
     maxConcurrent: 100,
 });
@@ -144,7 +149,9 @@ async function computeDistanceAccounts(
     return computeDistanceTransfers(compareToTransfers, userTransfers);
 }
 
-export const generateRecommendationForAddr = async (addr: string) => {
+export const generateRecommendationForAddr = async (
+    addr: string
+): Promise<AccountResponse[]> => {
     //check it exists in the graph
     const friendTxITransactions: Map<String, TxI[]> = new Map();
 
@@ -156,7 +163,7 @@ export const generateRecommendationForAddr = async (addr: string) => {
 
     if (res.records.length < 2) {
         //Do stuff to query current user and add their friends to the graph
-        return new Set();
+        return [];
     } else {
         const similarUsers: Account[] = [];
 
@@ -200,7 +207,7 @@ export const generateRecommendationForAddr = async (addr: string) => {
 
         //recommend all 20 smart contracts of the most similar users
         const responses = await limiter.schedule(() => {
-            const promises: Promise<string[]>[] = [];
+            const promises: Promise<AccountResponse[]>[] = [];
 
             for (const rank of ranks) {
                 promises.push(
@@ -212,7 +219,8 @@ export const generateRecommendationForAddr = async (addr: string) => {
                  `
                         );
 
-                        const currentRecommendedSmartContracts: string[] = [];
+                        const currentRecommendedSmartContracts: AccountResponse[] =
+                            [];
                         similarSmartContracts.records.map(async (el) => {
                             const neo4jReadResult =
                                 el as unknown as Neo4JReadResult;
@@ -227,11 +235,14 @@ export const generateRecommendationForAddr = async (addr: string) => {
                                     name.startsWith("<!doctype html>") ||
                                     name.startsWith("<!DOCTYPE")
                                 ) {
-                                    currentRecommendedSmartContracts.push(
-                                        maybeAccount.addr
-                                    );
+                                    currentRecommendedSmartContracts.push({
+                                        address: maybeAccount.addr,
+                                        name: name,
+                                    });
                                 } else {
-                                    currentRecommendedSmartContracts.push(name);
+                                    currentRecommendedSmartContracts.push({
+                                        address: maybeAccount.addr,
+                                    });
                                 }
                             } else {
                                 throw new Error("should not happen");
@@ -264,7 +275,6 @@ export const getHotContracts = async (n: number) => {
         addr: r.get("b").properties.addr,
         count: Number(r.get("users")),
     }));
-    console.log(addresses);
     return addresses;
 };
 

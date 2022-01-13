@@ -19,14 +19,20 @@ app.use(express.json());
 
 app.get("/recommend", async (req, res, next) => {
     try {
+        console.log("recommending...");
         // @ts-ignore
         const address: string = req.query.address;
         const results = await generateRecommendationForAddr(address);
+        console.log("recommended: ", results);
         res.json({ results });
     } catch (ex: unknown) {
         console.log(ex);
         res.status(503).send("Error occurred");
     }
+});
+
+app.get("/feedback", async (req, res, next) => {
+    // @ts-ignore
 });
 
 app.get("/hot", async (req, res) => {
