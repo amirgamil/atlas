@@ -12,7 +12,7 @@ import axios from "axios";
 import Splash from "../components/Splash";
 import MyWallet from "../components/MyWallet";
 
-const Graph = dynamic(() => import("../components/graph"), { ssr: false });
+const Graph = dynamic(() => import("../components/Graph"), { ssr: false });
 
 interface Account {
   addr: string;
