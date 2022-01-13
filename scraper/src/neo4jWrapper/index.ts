@@ -1,14 +1,22 @@
 import dotenv from "dotenv";
 import neo4j, { Config } from "neo4j-driver";
-import { delay } from "../util";
 dotenv.config({ path: "src/.env" });
+
+const config: Config = {
+    logging: {
+        level: "debug",
+        logger: (level: string, message: string) =>
+            console.log("+++" + level + " " + message), // custom function here
+    },
+};
 
 export const driver = neo4j.driver(
     `${process.env.NEO4J_URI}`,
     neo4j.auth.basic(
         `${process.env.NEO4J_USER}`,
         `${process.env.NEO4J_PASSWORD}`
-    )
+    ),
+    config
 );
 
 export interface Account {

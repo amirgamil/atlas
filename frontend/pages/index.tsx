@@ -32,10 +32,12 @@ const Home: NextPage = () => {
         // Get hot contracts
         const f = async () => {
             try {
-                const res = await axios.get<Response>(`${constants.serverUri}/hot`);
+                const res = await axios.get<Response>(
+                    `${constants.serverUri}/hot`
+                );
                 const results = res.data.results;
                 setHot(results);
-            } catch(err: any) {
+            } catch (err: any) {
                 console.log(err);
             }
         };
@@ -43,6 +45,25 @@ const Home: NextPage = () => {
         setAddress(context.address ?? "");
         f();
     }, []);
+
+    const loadRecommendations = async () => {
+        setLoading(true);
+        try {
+            const recommendations = await axios.get<Response>(
+                "http://localhost:3001/recommend",
+                {
+                    params: {
+                        address: address,
+                    },
+                }
+            );
+            console.log("recommended: ", recommendations.data.results);
+            setRecommended(recommendations.data.results);
+        } catch (err: any) {
+            alert(err);
+        }
+        setLoading(false);
+    };
 
     return (
         <div className={styles.container}>
@@ -71,32 +92,14 @@ const Home: NextPage = () => {
                                 onChange={(e) => setAddress(e.target.value)}
                             />
                         </div>
-                        <div className="w-full flex justify-center items-center mt-10">
+                        <div className="w-full flex flex-col justify-center items-center mt-10">
                             <button
                                 style={{
                                     background: "#4287f5",
                                     color: "white",
                                 }}
                                 className="rounded-md px-4 py-3 text-md"
-                                onClick={async () => {
-                                    setLoading(true);
-                                    try {
-                                        const recommendations =
-                                            await axios.get<Response>(
-                                                "http://localhost:3001/recommend",
-                                                {
-                                                    params: { address: address },
-                                                }
-                                            );
-                                        console.log("recommended: ", recommended);
-                                        setRecommended(
-                                            recommendations.data.results
-                                        );
-                                    } catch(err: any) {
-                                        alert(err);
-                                    }
-                                    setLoading(false);
-                                }}
+                                onClick={loadRecommendations}
                             >
                                 Get recommendation
                             </button>
@@ -106,7 +109,7 @@ const Home: NextPage = () => {
                         </div>
                     </div>
                     <div className="text-center mt-6">
-                        {recommended.length > 0 ? (
+                        {!loading && recommended.length > 0 ? (
                             <div>
                                 <h1 className="text-center">
                                     Your Recommendations
