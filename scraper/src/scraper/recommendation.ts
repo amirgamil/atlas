@@ -180,6 +180,7 @@ export const generateRecommendationForAddr = async (
         };
         const transactions = await getTransactionsWithPagination(payload, true);
         await createMultipleTx(transactions);
+
         return [];
     } else {
         const similarUsers: Account[] = [];
@@ -202,9 +203,11 @@ export const generateRecommendationForAddr = async (
                 edge.to = (
                     neo4jReadResult._fields[2].properties as Account
                 ).addr;
+
                 const maybePrevTransactions = friendTxITransactions.get(
                     fromAddressMaybe.addr
                 );
+
                 if (maybePrevTransactions) {
                     maybePrevTransactions.push(edge);
                 } else {

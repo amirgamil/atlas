@@ -108,7 +108,7 @@ const Home: NextPage = () => {
                                         <a
                                             href={`https://etherscan.io/address/${a.addr}`}
                                         >
-                                            {a.name}
+                                            {a.name ? a.name : a.addr}
                                         </a>
                                     </div>
                                 ))}
