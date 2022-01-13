@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import constants from "../constants";
 import axios from "axios";
 import Splash from "../components/Splash";
+import MyWallet from "../components/MyWallet";
 
 const Graph = dynamic(() => import("../components/graph"), { ssr: false });
 
@@ -58,7 +59,10 @@ const Home: NextPage = () => {
                 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"/>
             </Head>
 
-            <Splash/>
+            {context.address ?
+              <MyWallet address={context.address}/> :
+              <Splash/>
+            }
 
             {/*<main className={`overflow-y-auto ${styles.main}`}>*/}
             {/*    <div>*/}
