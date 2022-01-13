@@ -15,14 +15,24 @@ const Nav = () => {
         />
         <h1 className="my-auto ml-4 text-3xl text-gradient glow">Atlas</h1>
       </div>
-      <button
-        className="ml-auto my-auto mr-16 cursor-pointer"
-        onClick={context.openModal}
-      >
-        {context.address
-          ? `Signed In: ${context.address.slice(0, 8)}...`
-          : "Sign In"}
-      </button>
+      <div className="ml-auto mr-16">
+        <button
+          className="ml-auto my-auto cursor-pointer"
+          onClick={context.openModal}
+        >
+          {context.address
+            ? `Signed In: ${context.address.slice(0, 8)}...`
+            : "Sign In"}
+        </button>
+        {context.address && 
+          <button
+            className="my-auto ml-4 cursor-pointer button-dark"
+            onClick={context.signOut}
+          >
+            Sign Out
+          </button>
+        }
+      </div>
     </div>
   );
 };

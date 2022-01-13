@@ -52,6 +52,10 @@ button {
   background-size: 100% 8vw;
 }
 
+.button-dark {
+  background-image: linear-gradient(to right top, #3f5d88, #0087b6, #00b1b5);
+}
+
 button:hover {
   background-position-y: 100%;
 }
