@@ -18,3 +18,52 @@ a {
 * {
   box-sizing: border-box;
 }
+
+h1, h2, h3, p, a {
+  font-family: Poppins;
+}
+
+h1, h2, h3 {
+  font-weight: 700;
+}
+
+.text-gradient {
+  background: linear-gradient(to right top, #3f5d88, #0087b6, #00b1b5, #00d47f, #a8eb12);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: background 1s ease;
+  background-size: 100% 8vw;
+}
+
+.text-gradient:hover {
+  background-position-y: 100%;
+}
+
+.glow {
+  text-shadow: 0 0 40px rgb(192 219 255 / 40%), 0 0 6px rgb(65 120 255 / 2%);
+}
+
+button, .button {
+  font-weight: 700;
+  background-image: linear-gradient(to right top, #3f5d88, #0087b6, #00b1b5, #00d47f, #a8eb12);
+  padding: 0.5em 1.2em;
+  border-radius: 12px;
+  transition: background 1s ease;
+  background-size: 100% 8vw;
+}
+
+button:hover, .button:hover {
+  background-position-y: 100%;
+}
+
+button.secondary, .button {
+  background-image: none;
+  box-sizing: border-box;
+  position: relative;
+  border: 2px solid #3f5d88;
+  transition: border 1s ease;
+}
+
+button.secondary:hover, .button:hover {
+  border: 2px solid #00d47f;
+}

@@ -187,7 +187,6 @@ export const generateRecommendationForAddr = async (
     const res = await computeFriendsAndContracts(addr);
 
     if (res.records.length === 0) {
-        console.log("hello");
         // add current user and their transactions to the graph
         const payload: Payload = {
             jsonrpc: "2.0",
@@ -202,11 +201,10 @@ export const generateRecommendationForAddr = async (
             ],
         };
         const transactions = await getTransactionsWithPagination(payload, true);
-        console.log("transactions: ", transactions);
 
         const newTransaction = await createMultipleTx(transactions);
         console.log("new transaction: ", newTransaction);
-
+        //TODO: fix deadlock issues and make faster
         const res = await computeFriendsAndContracts(addr.toLowerCase());
         return await getAndRankContracts(
             addr.toLowerCase(),

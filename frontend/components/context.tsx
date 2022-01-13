@@ -5,12 +5,14 @@ import WalletConnectProvider from "@walletconnect/web3-provider";
 
 interface Context {
   openModal: () => void;
+  signOut: () => void;
   signer?: providers.JsonRpcSigner;
   address?: string;
 }
 
 export const AppContext = React.createContext<Context>({
   openModal: () => {},
+  signOut: () => {},
   signer: undefined,
   address: "",
 });
@@ -48,10 +50,16 @@ export const AppContextProvider = (props: any) => {
     setAddress(address);
   };
 
+  const signOut = () => {
+    setSigner(undefined);
+    setAddress(undefined);
+  }
+
   return (
     <AppContext.Provider
       value={{
         openModal,
+        signOut,
         signer,
         address,
       }}
