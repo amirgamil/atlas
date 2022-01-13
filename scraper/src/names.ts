@@ -1,3 +1,5 @@
+import { AccountResponse } from "./scraper/types";
+
 const names: Record<string, Record<string, string>> = {
   "0x00000000cd6eab3b2c4b0381247443b0cce5c40b": {
     name: "xd",
@@ -15002,7 +15004,15 @@ const names: Record<string, Record<string, string>> = {
 };
 
 const getName = (addr: string): string => {
-  return names[addr].name ?? addr;
+  return names[addr] && names[addr].name ? names[addr].name : addr;
 };
+
+export const getAccountResponse = (addr: string): AccountResponse => {
+  const name = names[addr] && names[addr].name ? names[addr].name : undefined;
+  if (name) {
+    return { addr, name: name }; 
+  }
+  return { addr };
+}
 
 export default getName;

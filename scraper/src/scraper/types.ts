@@ -40,3 +40,8 @@ export interface RawContract {
     address?: string;
     decimal?: string;
 }
+
+export interface AccountResponse {
+    addr: string;
+    name?: string;
+}

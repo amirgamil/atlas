@@ -1,6 +1,5 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
 import styles from "../styles/Home.module.css";
 import dynamic from "next/dynamic";
 
@@ -10,8 +9,6 @@ import { useAppContext } from "../components/context";
 import { useEffect, useState } from "react";
 import constants from "../constants";
 import axios from "axios";
-import { utils } from "ethers";
-import useDebounce from "../hooks/useDebounce";
 
 const Graph = dynamic(() => import("../components/graph"), { ssr: false });
 
@@ -55,7 +52,7 @@ const Home: NextPage = () => {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
 
-            <main className={styles.main}>
+            <main className={`overflow-y-auto ${styles.main}`}>
                 <div>
                     <h1 className="text-center py-4">Transaction Graph</h1>
                     <div className="mt-1">
@@ -95,7 +92,28 @@ const Home: NextPage = () => {
                             >
                                 Get recommendation
                             </button>
+                            {loading ? (
+                                <p>Learning your deepest darkest secrets</p>
+                            ) : null}
                         </div>
+                    </div>
+                    <div className="text-center mt-6">
+                        {recommended.length > 0 ? (
+                            <div>
+                                <h1 className="text-center">
+                                    Your Recommendations
+                                </h1>
+                                {recommended.map((a) => (
+                                    <div>
+                                        <a
+                                            href={`https://etherscan.io/address/${a.addr}`}
+                                        >
+                                            {a.name}
+                                        </a>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : null}
                     </div>
                     {address ? (
                         <SafeHydrate>
@@ -112,27 +130,6 @@ const Home: NextPage = () => {
                                             href={`https://etherscan.io/address/${a.addr}`}
                                         >
                                             {a.name ? a.name : a.addr}
-                                        </a>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : null}
-                    </div>
-                    <div className="text-center mt-6">
-                        {loading ? (
-                            <p>Learning your deepest darkest secrets</p>
-                        ) : null}
-                        {recommended.length > 0 ? (
-                            <div>
-                                <h1 className="text-center">
-                                    Your Recommendations
-                                </h1>
-                                {recommended.map((a) => (
-                                    <div>
-                                        <a
-                                            href={`https://etherscan.io/address/${a.addr}`}
-                                        >
-                                            {a.name}
                                         </a>
                                     </div>
                                 ))}

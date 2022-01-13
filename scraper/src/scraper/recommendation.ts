@@ -1,13 +1,17 @@
 import axios from "axios";
-import { Account, executeReadQuery, init, TxI } from "../neo4jWrapper/index";
-import { Transfer, Response } from "./types";
+import {
+    Account,
+    createMultipleTx,
+    executeReadQuery,
+    TxI,
+} from "../neo4jWrapper/index";
+import { Response, AccountResponse } from "./types";
 import { Payload } from "./types";
 import dotenv from "dotenv";
 import { converter } from "../util";
-import PromisePool from "es6-promise-pool";
 import Bottleneck from "bottleneck";
-import getName from "../names";
-import { batchCompare } from "../modularity/index"
+import getName, { getAccountResponse } from "../names";
+import { batchCompare } from "../modularity/index";
 
 dotenv.config({
     path: "./src/.env",
@@ -18,13 +22,8 @@ interface DistAccount {
     account: Account;
 }
 
-interface AccountResponse {
-    address: string;
-    name?: string;
-}
-
 const limiter = new Bottleneck({
-    maxConcurrent: 100,
+    maxConcurrent: 500,
 });
 
 //given list of user accounts, computes distance from root user
@@ -71,7 +70,10 @@ async function rankResults(
     return distanceMetrics.slice(0, 100);
 }
 
-async function getTransactionsWithPagination(payload: Payload): Promise<TxI[]> {
+async function getTransactionsWithPagination(
+    payload: Payload,
+    paginate = false
+): Promise<TxI[]> {
     const transactions = await axios.post<Response>(
         `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
         payload
@@ -84,22 +86,21 @@ async function getTransactionsWithPagination(payload: Payload): Promise<TxI[]> {
     const transfers: TxI[] = transactions.data.result.transfers.map(
         converter.mapTxData
     );
-    // let pageKey = transactions.data.result.pageKey;
+    let pageKey = transactions.data.result.pageKey;
 
-    //for now don't do pagination for speed
-    // while (pageKey !== undefined) {
-    //     payload.params[0].pageKey = pageKey;
-    //     const next = await axios.post<Response>(
-    //         `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
-    //         payload
-    //     );
-    //     if (next.data.result.transfers) {
-    //         transfers.push(
-    //             ...next.data.result.transfers.map(converter.mapTxData)
-    //         );
-    //     }
-    //     pageKey = next.data.result.pageKey;
-    // }
+    while (pageKey !== undefined && paginate) {
+        payload.params[0].pageKey = pageKey;
+        const next = await axios.post<Response>(
+            `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
+            payload
+        );
+        if (next.data.result.transfers) {
+            transfers.push(
+                ...next.data.result.transfers.map(converter.mapTxData)
+            );
+        }
+        pageKey = next.data.result.pageKey;
+    }
     return transfers;
 }
 
@@ -163,8 +164,22 @@ export const generateRecommendationForAddr = async (
                                 WHERE NOT (acc)-[:To]->(contract)
                                 RETURN friend, otherTransaction, contract`);
 
-    if (res.records.length < 2) {
-        //Do stuff to query current user and add their friends to the graph
+    if (res.records.length === 0) {
+        //add current user and their transactions to the graph
+        const payload: Payload = {
+            jsonrpc: "2.0",
+            method: "alchemy_getAssetTransfers",
+            params: [
+                {
+                    fromBlock: "0x0",
+                    fromAddress: addr,
+                    category: ["external", "internal", "token"],
+                    maxCount: "0x14",
+                },
+            ],
+        };
+        const transactions = await getTransactionsWithPagination(payload, true);
+        await createMultipleTx(transactions);
         return [];
     } else {
         const similarUsers: Account[] = [];
@@ -230,21 +245,9 @@ export const generateRecommendationForAddr = async (
                                 neo4jReadResult._fields[0].properties;
 
                             if (isAccount(maybeAccount)) {
-                                const name = getName(maybeAccount.addr);
-
-                                if (
-                                    name.startsWith("<!doctype html>") ||
-                                    name.startsWith("<!DOCTYPE")
-                                ) {
-                                    currentRecommendedSmartContracts.push({
-                                        address: maybeAccount.addr,
-                                        name: name,
-                                    });
-                                } else {
-                                    currentRecommendedSmartContracts.push({
-                                        address: maybeAccount.addr,
-                                    });
-                                }
+                                currentRecommendedSmartContracts.push(
+                                    getAccountResponse(maybeAccount.addr)
+                                );
                             } else {
                                 throw new Error("should not happen");
                             }
@@ -262,19 +265,21 @@ export const generateRecommendationForAddr = async (
                     return [...prev, ...current];
                 }, [])
             ),
-        ];
+        ].slice(0, 20);
     }
 };
 
-export const getSimilarContracts = async(addr: string) => {
+export const getSimilarContracts = async (addr: string) => {
     const res = await executeReadQuery(`
         MATCH (acc:Contract {addr: '${addr}'})<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
         WHERE NOT (acc)-[:To]->(contract)
         RETURN contract
     `);
-    const addresses = Array.from(new Set(res.records.map((r) => r.get("contract").properties.addr)));
+    const addresses = Array.from(
+        new Set(res.records.map((r) => r.get("contract").properties.addr))
+    );
     return await batchCompare(addr, addresses);
-}
+};
 
 export const getHotContracts = async (n: number) => {
     const res = await executeReadQuery(`
