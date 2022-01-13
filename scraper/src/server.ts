@@ -64,6 +64,7 @@ app.get("/tokens", async (req, res) => {
         const tokens = await getTokensForAddress(address);
         res.json(tokens);
     } catch(err: any) {
+        console.log(err);
         res.status(503).send("Error");
     }
 })
