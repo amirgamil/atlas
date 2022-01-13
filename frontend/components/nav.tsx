@@ -10,10 +10,10 @@ const Nav = () => {
         <Image
           src="/logo.png"
           alt="Logo"
-          width={64}
-          height={64}
+          width={50}
+          height={50}
         />
-        <h1 className="my-auto ml-4 text-3xl">Atlas</h1>
+        <h1 className="my-auto ml-4 text-3xl text-gradient glow">Atlas</h1>
       </div>
       <button
         className="ml-auto my-auto mr-16 cursor-pointer"

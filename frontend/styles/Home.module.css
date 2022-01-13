@@ -1,6 +1,7 @@
 .container {
   padding: 0;
-  background: #14111f;
+  min-height: 100vh;
+  background-image: linear-gradient(to left top, #2c264c, #262647, #202541, #1d233b, #1a2235, #192236, #182238, #172239, #172442, #19254b, #1e2554, #25255c);
 }
 
 .main {
