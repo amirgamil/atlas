@@ -3,7 +3,6 @@ import {
   Account,
   createMultipleTx,
   executeReadQuery,
-  init,
   TxI,
 } from "../neo4jWrapper/index";
 import { Response, AccountResponse } from "./types";
@@ -13,7 +12,7 @@ import { converter } from "../util";
 import Bottleneck from "bottleneck";
 import { getAccountResponse } from "../names";
 import { batchCompare } from "../modularity/index";
-import type { Record } from "neo4j-driver";
+import type { Record as Neo4jRecord } from "neo4j-driver";
 
 dotenv.config({
   path: "./src/.env",
@@ -176,6 +175,7 @@ async function computeFriendsAndContracts(addr: string) {
 export const generateRecommendationForAddr = async (
   addr: string
 ): Promise<AccountResponse[]> => {
+  if (!addr) return Promise.reject([]);
   //check it exists in the graph
   const friendTxITransactions: Map<String, TxI[]> = new Map();
 
@@ -227,12 +227,12 @@ const getAndRankContractsNewUser = async (
 ) => {
   const current = new Date().getTime();
   const responses = await limiter.schedule(() => {
-    const promises: Promise<Record[]>[] = [];
+    const promises: Promise<Neo4jRecord[]>[] = [];
     for (const transaction of transactions) {
       //is a smart contract
       if (!transaction.toIsUser) {
         promises.push(
-          new Promise<Record[]>(async (resolve) => {
+          new Promise<Neo4jRecord[]>(async (resolve) => {
             const res =
               await executeReadQuery(`MATCH (child:Contract { addr: '${transaction.to}'})<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
                                     RETURN friend, otherTransaction, contract`);
@@ -335,7 +335,7 @@ const recommendContractFromRanked = async (ranks: DistAccount[]) => {
 
 const getAndRankContracts = async (
   addr: string,
-  records: Record[],
+  records: Neo4jRecord[],
   friendTxITransactions: Map<String, TxI[]>
 ) => {
   const similarUsers: Account[] = [];
@@ -443,4 +443,32 @@ const isAccount = (val: any): val is Account => {
 //kind of hacky
 const isTransfer = (val: Account | TxI): val is TxI => {
   return !isAccount(val);
+};
+
+interface AccountFeedback {
+  name?: string;
+  isGoodRecommendation: boolean;
+}
+
+export const submitFeedback = async (
+  addr: string,
+  feedbackAddrs: Record<string, AccountFeedback>
+) => {
+  const records: Neo4jRecord[] = [];
+  for (const [address, feedbackDetails] of Object.entries(feedbackAddrs)) {
+    if (feedbackDetails.isGoodRecommendation) {
+      const res = await executeReadQuery(`
+                MATCH (acc:Contract {addr: '${address}'})<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
+                WHERE NOT (acc)-[:To]->(contract)
+                RETURN contract
+            `);
+      //@ts-ignore
+      records.push(res.records);
+    }
+  }
+  return await getAndRankContracts(
+    addr.toLowerCase(),
+    records,
+    new Map<String, TxI[]>()
+  );
 };

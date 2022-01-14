@@ -4,6 +4,7 @@ import {
   generateRecommendationForAddr,
   getHotContracts,
   getSimilarContracts,
+  submitFeedback,
 } from "./scraper/recommendation";
 import { converter, getTokensForAddress } from "./util";
 import { init } from "./neo4jWrapper";
@@ -49,7 +50,6 @@ app.get("/hot", async (req, res) => {
 
 app.get("/similar-neighbors", async (req, res) => {
   try {
-    console.log("Hello");
     const address = req.query.address as string;
     const similar = await getSimilarContracts(address);
     res.json(similar);
@@ -66,6 +66,19 @@ app.get("/tokens", async (req, res) => {
     res.json(tokens);
   } catch (err: any) {
     console.log(err);
+    res.status(503).send("Error");
+  }
+});
+
+app.post("/recommendFeedback", async (req, res, next) => {
+  try {
+    //@ts-ignore
+    console.log(req.body.feedback);
+    //@ts-ignore
+    const results = submitFeedback(req.query.address, req.body.feedback);
+    res.send({ results });
+  } catch (ex: unknown) {
+    console.log(ex);
     res.status(503).send("Error");
   }
 });

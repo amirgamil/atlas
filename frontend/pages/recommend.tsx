@@ -8,7 +8,7 @@ const Recommend = () => {
   if (context.isLoadingRecommendations)
     return <p>We are unveiling your deepest, darkest secrets</p>;
   else if (!context.recommendations) {
-    context.loadRecommendations();
+    context.loadRecommendations(context.address ?? "");
     return <p>We are unveiling your deepest, darkest secrets</p>;
   }
 
