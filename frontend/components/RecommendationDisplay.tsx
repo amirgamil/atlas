@@ -1,6 +1,6 @@
 import Avatar from "boring-avatars";
 import React from "react";
-import { Account, Feedback } from "../types";
+import { Account } from "../types";
 import styled from "styled-components";
 
 interface Props {

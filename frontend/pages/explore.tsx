@@ -16,7 +16,6 @@ interface Account {
 const Explore: NextPage = () => {
   const { data, error } = useData('/hot')
 
-  console.log(data)
   if (error) return <UhOh>Failed to hot contracts</UhOh>
   if (!data) return <Loader loading />
 
@@ -37,7 +36,7 @@ const Explore: NextPage = () => {
           <h1 className="text-gradient text-4xl">Hot Contracts</h1>
           {
             (data.results || []).slice(0, 6).map((el: any) => (
-              <Recommendation {...el} />
+              <Recommendation props={el} setFeedback={() => {}} />
             ))
           }
         </div>
