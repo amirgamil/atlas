@@ -1,37 +1,37 @@
-import Image from 'next/image'
+import Image from "next/image";
 import Avatar from "boring-avatars";
-import {useCallback, useState} from "react";
+import { useCallback, useState } from "react";
 import Loader from "./Loader";
-import {fetcher} from "../hooks/useData";
+import { fetcher } from "../hooks/useData";
 
 export interface IToken {
-  balance: number
-  contractAddress: string,
+  balance: number;
+  contractAddress: string;
   metadata: {
-    decimals: number,
-    logo: string,
-  },
-  name: string,
-  symbol: string,
-  type: string,
+    decimals: number;
+    logo: string;
+  };
+  name: string;
+  symbol: string;
+  type: string;
 }
 
 const fetchRelatedFn = async (addr: string): Promise<IToken[]> => {
-  const json = await fetcher(`/similar-neighbors?address=${addr}`)
-  console.log(json)
-  return []
-}
+  const json = await fetcher(`/similar-neighbors?address=${addr}`);
+  console.log(json);
+  return [];
+};
 
 function Token(props: IToken) {
   const [children, setChildren] = useState<IToken[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const fetchChildren = useCallback(async () => {
-    setLoading(true)
-    const recs = await fetchRelatedFn(props.contractAddress)
-    setChildren(recs)
-    setLoading(false)
-  }, [props.contractAddress])
+    setLoading(true);
+    const recs = await fetchRelatedFn(props.contractAddress);
+    setChildren(recs);
+    setLoading(false);
+  }, [props.contractAddress]);
 
   const isNFT = props.type !== "ERC20"
 
@@ -62,7 +62,7 @@ function Token(props: IToken) {
       {loading && <Loader loading={loading} small />}
       {children.map(tok => <Token {...tok} />)}
     </div>
-  </div>)
+  );
 }
 
-export default Token
+export default Token;

@@ -116,7 +116,6 @@ const graph = ({ user }: { user: string }) => {
       style={{
         width: `1200px`,
         height: `800px`,
-        backgroundColor: `white`,
       }}
     />
   );
