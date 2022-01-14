@@ -369,11 +369,36 @@ const getAndRankContracts = async (
 };
 
 export const getSimilarContracts = async (addr: string) => {
-  const res = await executeReadQuery(`
+  let res = await executeReadQuery(`
         MATCH (acc:Contract {addr: '${addr}'})<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
         WHERE NOT (acc)-[:To]->(contract)
         RETURN contract
     `);
+  console.log(res.records.length);
+  if (res.records.length === 0) {
+    const payload: Payload = {
+      jsonrpc: "2.0",
+      method: "alchemy_getAssetTransfers",
+      params: [
+        {
+          fromBlock: "0x0",
+          fromAddress: addr,
+          category: ["external", "internal", "token"],
+          maxCount: "0x14",
+        },
+      ],
+    };
+    const results = await getTransactionsWithPagination(payload);
+    console.log("fetched transactions similar: ", results);
+    await createMultipleTx(results);
+    console.log("wrote new transactions in db for similar");
+    res = await executeReadQuery(`
+        MATCH (acc:Contract {addr: '${addr}'})<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
+        WHERE NOT (acc)-[:To]->(contract)
+        RETURN contract
+    `);
+    console.log("executed query");
+  }
   const addresses = Array.from(
     new Set(res.records.map((r) => r.get("contract").properties.addr))
   );
