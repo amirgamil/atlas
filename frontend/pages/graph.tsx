@@ -9,7 +9,7 @@ const UserGraph = () => {
   console.log("address: ", context.address);
   return (
     <SafeHydrate>
-      <Graph user={context.address} />
+      <Graph user={"0xa335ade338308b8e071cf2c8f3ca5e50f6563c60"} />
     </SafeHydrate>
   );
 };

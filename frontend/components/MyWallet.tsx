@@ -17,7 +17,7 @@ function TokenList({address}: {address: string}) {
   </div>
 }
 
-function MyWallet({address}: {address: string}) {
+function MyWallet({address, hot}: {address: string, hot: any}) {
   const context = useAppContext();
 
   return (<div className="text-white w-1/2 m-auto">
@@ -35,6 +35,15 @@ function MyWallet({address}: {address: string}) {
         .slice(0, 6)
         .map((el, i) => (
           <Recommendation key={i} {...el} />
+        ))
+      }
+
+    </div>
+    <div className="my-24">
+      <h1 className="text-gradient text-4xl">Hot Contracts</h1>
+      {
+        (hot || []).slice(0, 6).map((el: any) => (
+          <Recommendation {...el} />
         ))
       }
     </div>

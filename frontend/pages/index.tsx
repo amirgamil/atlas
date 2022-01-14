@@ -34,6 +34,7 @@ const Home: NextPage = () => {
       try {
         const res = await axios.get<Response>(`${constants.serverUri}/hot`);
         const results = res.data.results;
+        console.log(results);
         setHot(results);
       } catch (err: any) {
         console.log(err);
@@ -57,7 +58,7 @@ const Home: NextPage = () => {
         />
       </Head>
       <main className={`overflow-y-auto ${styles.main}`}>
-        {context.address ? <MyWallet address={context.address} /> : <Splash />}
+        {context.address ? <MyWallet address={context.address} hot={hot} /> : <Splash />}
         {/*<div>*/}
         {/*  <h1 className="text-center py-4">Transaction Graph</h1>*/}
         {/*  <div className="mt-1">*/}
