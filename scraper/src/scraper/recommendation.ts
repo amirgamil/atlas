@@ -246,7 +246,7 @@ const getAndRankContractsNewUser = async (
 
   const result = await getAndRankContracts(
     addr.toLowerCase(),
-    responses.reduce((prev, current) => [...prev, ...current]),
+    responses.reduce((prev, current) => [...prev, ...current], []),
     friendTxITransactions
   );
   console.log(

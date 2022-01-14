@@ -2,6 +2,6 @@
 module.exports = {
   reactStrictMode: true,
   images: {
-    domains: ['static.alchemyapi.io'],
+    domains: ['static.alchemyapi.io', 'ethplorer.io', 'storage.opensea.io'],
   },
 }

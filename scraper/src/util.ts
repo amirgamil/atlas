@@ -1,5 +1,6 @@
 import axios from "axios";
 import { Converter } from "./scraper/scraper";
+import {getNFTs, getTokens} from "./ethdata";
 
 interface BlockscoutTokenResponse {
     balance: string;
@@ -63,38 +64,49 @@ export const getContractNameScrape = async (addr: string) => {
 };
 
 export const getTokensForAddress = async (addr: string): Promise<Array<TokenBalance>> => {
-    /* const alchemyRes = axios.post(
-        'https://eth-mainnet.alchemyapi.io/v2/ZgihkMdrhmQNZJWJM2TLRNWez_AA5Jzo',
-        `{"jsonrpc":"2.0","method":"alchemy_getTokenMetadata","params": ["${addr}"], "id": 1}`
-    ) */
-    const res = await axios.get(`https://blockscout.com/eth/mainnet/api?module=account&action=tokenlist&address=${addr}`);
-    if(res.status !== 200 || res.data.message !== "OK") {
-        return [];
-    }
-    const tokens = res.data.result;
-    const addresses = tokens.map((t: any) => t.contractAddress);
-    const alchemyBodies = addresses.map((addr: string) => ({
-        jsonrpc: "2.0",
-        method: "alchemy_getTokenMetadata",
-        id: "1",
-        params: [addr],
-    }));
-    const alchemyRes = await Promise.all(alchemyBodies.map((b: any) => axios.post(
-        'https://eth-mainnet.alchemyapi.io/v2/ZgihkMdrhmQNZJWJM2TLRNWez_AA5Jzo',
-        b
-    )));
-    return tokens.map((token: BlockscoutTokenResponse, i: number) => {
-        const decimals = token.decimals !== "" ? Number(token.decimals) : 0;
-        return {
-            balance: Number(token.balance) / 10**decimals,
-            contractAddress: token.contractAddress,
-            name: token.name,
-            symbol: token.symbol,
-            type: token.type,
-            metadata: (alchemyRes[i] as any).data.result
+    // const res = await axios.get(`https://blockscout.com/eth/mainnet/api?module=account&action=tokenlist&address=${addr}`);
+    // if(res.status !== 200 || res.data.message !== "OK") {
+    //     return [];
+    // }
+    // const tokens = res.data.result;
+    //
+    // const addresses = tokens.map((t: any) => t.contractAddress);
+    // const alchemyBodies = addresses.map((addr: string) => ({
+    //     jsonrpc: "2.0",
+    //     method: "alchemy_getTokenMetadata",
+    //     id: "1",
+    //     params: [addr],
+    // }));
+    // const alchemyRes = await Promise.all(alchemyBodies.map((b: any) => axios.post(
+    //     'https://eth-mainnet.alchemyapi.io/v2/ZgihkMdrhmQNZJWJM2TLRNWez_AA5Jzo',
+    //     b
+    // )));
+    // return tokens.map((token: BlockscoutTokenResponse, i: number) => {
+    //     const decimals = token.decimals !== "" ? Number(token.decimals) : 0;
+    //     return {
+    //         balance: Number(token.balance) / 10**decimals,
+    //         contractAddress: token.contractAddress,
+    //         name: token.name,
+    //         symbol: token.symbol,
+    //         type: token.type,
+    //         metadata: (alchemyRes[i] as any).data.result
+    //     }
+    // });
+    const [res, nfts]: [any[], any[]] = await Promise.all([getTokens(addr), getNFTs(addr)])
+    const tokens = res.filter(tok => tok.tokenInfo.name !== "").map(tok => {
+      const meta = tok.tokenInfo
+      return ({
+        balance: Number(tok.balance) / 10 ** Number(meta.decimals),
+        contractAddress: meta.address,
+        name: meta.name,
+        symbol: meta.symbol,
+        type: "ERC20",
+        metadata: {
+          logo: meta.image ? `https://ethplorer.io/${meta.image}` : undefined
         }
-    });
-
+      })
+    })
+    return [...tokens, ...nfts]
 }
 
 export const getContractNameScrapeTest = async () => {
