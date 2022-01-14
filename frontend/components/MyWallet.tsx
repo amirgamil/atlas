@@ -5,7 +5,6 @@ import Token, {IToken} from "./WalletTokenDisplay";
 import {useAppContext} from "./Context";
 import {Recommendation} from "./RecommendationDisplay";
 import * as React from "react";
-import {useMemo} from "react";
 
 function TokenList({address}: {address: string}) {
   const { data, error } = useData(`/tokens?address=${address}`)
@@ -17,7 +16,7 @@ function TokenList({address}: {address: string}) {
   </div>
 }
 
-function MyWallet({address, hot}: {address: string, hot: any}) {
+function MyWallet({address}: {address: string}) {
   const context = useAppContext();
 
   return (<div className="text-white w-1/2 m-auto">
@@ -38,14 +37,6 @@ function MyWallet({address, hot}: {address: string, hot: any}) {
         ))
       }
 
-    </div>
-    <div className="my-24">
-      <h1 className="text-gradient text-4xl">Hot Contracts</h1>
-      {
-        (hot || []).slice(0, 6).map((el: any) => (
-          <Recommendation {...el} />
-        ))
-      }
     </div>
   </div>)
 }

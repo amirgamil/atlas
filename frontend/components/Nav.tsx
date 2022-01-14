@@ -15,7 +15,9 @@ const Nav = () => {
           width={50}
           height={50}
         />
-        <h1 className="my-auto ml-4 text-3xl text-gradient glow">Atlas</h1>
+        <Link href="/">
+          <h1 className="my-auto ml-4 text-3xl text-gradient glow"><a>Atlas</a></h1>
+        </Link>
       </div>
       <div className="ml-auto my-auto mr-16">
         {context.address && <>
