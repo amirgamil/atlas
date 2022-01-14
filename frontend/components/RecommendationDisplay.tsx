@@ -9,6 +9,7 @@ export function Recommendation(props: Account) {
         <Avatar
           size={30}
           variant="marble"
+          name={props.name || props.addr}
           colors={["#3f5d88", "#0087b6", "#00b1b5", "#00d47f", "#a8eb12"]}
         />
       </div>
