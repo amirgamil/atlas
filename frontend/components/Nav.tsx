@@ -25,6 +25,11 @@ const Nav = () => {
               Local Graph
             </a>
           </Link>
+          <Link href={`/recommend?center=${context.address}`}>
+            <a className="button secondary mr-4">
+              For You
+            </a>
+          </Link>
           <Link href={`/explore`}>
             <a className="button secondary mr-4">
               Explore

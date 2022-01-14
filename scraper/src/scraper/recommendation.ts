@@ -1,10 +1,10 @@
 import axios from "axios";
 import {
-    Account,
-    createMultipleTx,
-    executeReadQuery,
-    init,
-    TxI,
+  Account,
+  createMultipleTx,
+  executeReadQuery,
+  init,
+  TxI,
 } from "../neo4jWrapper/index";
 import { Response, AccountResponse } from "./types";
 import { Payload } from "./types";
@@ -13,348 +13,409 @@ import { converter } from "../util";
 import Bottleneck from "bottleneck";
 import { getAccountResponse } from "../names";
 import { batchCompare } from "../modularity/index";
-import { QueryResult } from "neo4j-driver";
+import type { Record } from "neo4j-driver";
 
 dotenv.config({
-    path: "./src/.env",
+  path: "./src/.env",
 });
 
 interface DistAccount {
-    distance: number;
-    account: Account;
+  distance: number;
+  account: Account;
 }
 
 const limiter = new Bottleneck({
-    maxConcurrent: 500,
+  maxConcurrent: 1000,
 });
 
 //given list of user accounts, computes distance from root user
 async function rankResults(
-    currentUser: Account,
-    listOfUsers: Account[],
-    allTxIHistory: Map<String, TxI[]>,
-    userHistory?: TxI[]
+  currentUser: Account,
+  listOfUsers: Account[],
+  allTxIHistory: Map<String, TxI[]>,
+  userHistory?: TxI[]
 ) {
-    const payload: Payload = {
-        jsonrpc: "2.0",
-        method: "alchemy_getAssetTransfers",
-        params: [
-            {
-                fromBlock: "0x0",
-                fromAddress: currentUser.addr,
-                category: ["external", "internal", "token"],
-                maxCount: "0x14",
-            },
-        ],
-    };
+  const payload: Payload = {
+    jsonrpc: "2.0",
+    method: "alchemy_getAssetTransfers",
+    params: [
+      {
+        fromBlock: "0x0",
+        fromAddress: currentUser.addr,
+        category: ["external", "internal", "token"],
+        maxCount: "0x14",
+      },
+    ],
+  };
+  if (!userHistory) {
+    userHistory = await getTransactionsWithPagination(payload);
+  }
+
+  const distanceMetrics = await limiter.schedule(() => {
     if (!userHistory) {
-        userHistory = await getTransactionsWithPagination(payload);
+      return Promise.reject(new Error("User history should defined"));
     }
+    const definedUserHist = userHistory;
+    const promises: Promise<DistAccount>[] = [];
 
-    const distanceMetrics = await limiter.schedule(() => {
-        if (!userHistory) {
-            return Promise.reject(new Error("User history should defined"));
-        }
-        const definedUserHist = userHistory;
-        const promises: Promise<DistAccount>[] = [];
+    for (const similarUser of listOfUsers) {
+      const similarUserTransfers = allTxIHistory.get(similarUser.addr);
 
-        for (const similarUser of listOfUsers) {
-            const similarUserTransfers = allTxIHistory.get(similarUser.addr);
-
-            if (similarUserTransfers) {
-                promises.push(
-                    new Promise(async (resolve) => {
-                        const dist = await computeDistanceAccounts(
-                            similarUserTransfers,
-                            definedUserHist
-                        );
-                        resolve({ distance: dist, account: similarUser });
-                    })
-                );
-            }
-        }
-        return Promise.all(promises);
-    });
-    distanceMetrics.sort((a: DistAccount, b: DistAccount) =>
-        a.distance < b.distance ? -1 : a.distance === b.distance ? 0 : 1
-    );
-    return distanceMetrics.slice(0, 100);
+      if (similarUserTransfers) {
+        promises.push(
+          new Promise(async (resolve) => {
+            const dist = await computeDistanceAccounts(
+              similarUserTransfers,
+              definedUserHist
+            );
+            resolve({ distance: dist, account: similarUser });
+          })
+        );
+      }
+    }
+    return Promise.all(promises);
+  });
+  distanceMetrics.sort((a: DistAccount, b: DistAccount) =>
+    a.distance < b.distance ? -1 : a.distance === b.distance ? 0 : 1
+  );
+  return distanceMetrics.slice(0, 100);
 }
 
 async function getTransactionsWithPagination(
-    payload: Payload,
-    paginate = false
+  payload: Payload,
+  paginate = false
 ): Promise<TxI[]> {
-    const transactions = await axios.post<Response>(
-        `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
-        payload
+  const transactions = await axios.post<Response>(
+    `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
+    payload
+  );
+
+  //FIXME: I don't understand why this sometimes happens, maybe it's an Alchemy thing
+  if (!transactions.data.result) {
+    return [];
+  }
+
+  await converter.setAccountTypes([transactions.data.result.transfers[0].from]);
+  const transfers: TxI[] = transactions.data.result.transfers.map(
+    converter.mapTxData
+  );
+  let pageKey = transactions.data.result.pageKey;
+
+  let count = 0;
+
+  //set a limit on number of paginations to prevent crashing the server
+  while (pageKey !== undefined && paginate && count < 4) {
+    payload.params[0].pageKey = pageKey;
+    const next = await axios.post<Response>(
+      `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
+      payload
     );
-
-    //FIXME: I don't understand why this sometimes happens, maybe it's an Alchemy thing
-    if (!transactions.data.result) {
-        return [];
+    if (next.data.result.transfers) {
+      transfers.push(...next.data.result.transfers.map(converter.mapTxData));
     }
-
-    await converter.setAccountTypes([
-        transactions.data.result.transfers[0].from,
-    ]);
-    const transfers: TxI[] = transactions.data.result.transfers.map(
-        converter.mapTxData
-    );
-    let pageKey = transactions.data.result.pageKey;
-
-    let count = 0;
-
-    //set a limit on number of paginations to prevent crashing the server
-    while (pageKey !== undefined && paginate && count < 4) {
-        payload.params[0].pageKey = pageKey;
-        const next = await axios.post<Response>(
-            `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
-            payload
-        );
-        if (next.data.result.transfers) {
-            transfers.push(
-                ...next.data.result.transfers.map(converter.mapTxData)
-            );
-        }
-        pageKey = next.data.result.pageKey;
-        count += 1;
-    }
-    return transfers;
+    pageKey = next.data.result.pageKey;
+    count += 1;
+  }
+  return transfers;
 }
 
 const valOr0 = (val: typeof NaN | number) => {
-    return isNaN(val) ? 0 : val;
+  return isNaN(val) ? 0 : val;
 };
 
 //calculates the difference between two transactions. Uses a weighted sum
 //0.7 to address, 0.2 type of token, 0.1 value
 const calcDifferenceAccounts = (accountOne: TxI, accountTwo: TxI) => {
-    if (!accountOne.value || !accountTwo.value) {
-        return 1;
-    }
-    //FIXME: make this more intelligent
-    const val1 = accountOne.value.valueOf();
-    const val2 = accountOne.value.valueOf();
-    return (
-        0.7 * (accountOne.to === accountTwo.to ? 0 : 1) +
-        0.2 * (accountOne.asset === accountTwo.asset ? 0 : 1) +
-        0.1 * valOr0((val1 - val2) / (val1 + val2))
-    );
+  if (!accountOne.value || !accountTwo.value) {
+    return 1;
+  }
+  //FIXME: make this more intelligent
+  const val1 = accountOne.value.valueOf();
+  const val2 = accountOne.value.valueOf();
+  return (
+    0.7 * (accountOne.to === accountTwo.to ? 0 : 1) +
+    0.2 * (accountOne.asset === accountTwo.asset ? 0 : 1) +
+    0.1 * valOr0((val1 - val2) / (val1 + val2))
+  );
 };
 
 function computeDistanceTransfers(transferA: TxI[], transferB: TxI[]): number {
-    let dist = 0;
-    //sort by distance to elimiate effect of order of transactions
-    //FIXME: this is kind of stupid, it will work for same addresses, it will lead to weird results
-    //where transactions have similar addresses but not identical
-    transferA.sort((t1: TxI, t2: TxI) =>
-        t1.to < t2.to ? -1 : t1.to === t2.to ? 0 : 1
-    );
-    transferB.sort((t1: TxI, t2: TxI) =>
-        t1.to < t2.to ? -1 : t1.to === t2.to ? 0 : 1
-    );
-    const minLength = Math.min(transferA.length, transferB.length);
-    //do a pairwise comparison
-    for (let i = 0; i < minLength; i++) {
-        const transferOne = transferA[i];
-        const transferTwo = transferB[i];
-        dist += calcDifferenceAccounts(transferOne, transferTwo);
-    }
-    return dist / minLength;
+  let dist = 0;
+  //sort by distance to elimiate effect of order of transactions
+  //FIXME: this is kind of stupid, it will work for same addresses, it will lead to weird results
+  //where transactions have similar addresses but not identical
+  transferA.sort((t1: TxI, t2: TxI) =>
+    t1.to < t2.to ? -1 : t1.to === t2.to ? 0 : 1
+  );
+  transferB.sort((t1: TxI, t2: TxI) =>
+    t1.to < t2.to ? -1 : t1.to === t2.to ? 0 : 1
+  );
+  const minLength = Math.min(transferA.length, transferB.length);
+  //do a pairwise comparison
+  for (let i = 0; i < minLength; i++) {
+    const transferOne = transferA[i];
+    const transferTwo = transferB[i];
+    dist += calcDifferenceAccounts(transferOne, transferTwo);
+  }
+  return dist / minLength;
 }
 
 async function computeDistanceAccounts(
-    compareToTransfers: TxI[],
-    userTransfers: TxI[]
+  compareToTransfers: TxI[],
+  userTransfers: TxI[]
 ): Promise<number> {
-    return computeDistanceTransfers(compareToTransfers, userTransfers);
+  return computeDistanceTransfers(compareToTransfers, userTransfers);
 }
 
 async function computeFriendsAndContracts(addr: string) {
-    return await executeReadQuery(`MATCH (acc:User {addr: '${addr}'})-[:To]->(child:Contract)<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
+  return await executeReadQuery(`MATCH (acc:User {addr: '${addr}'})-[:To]->(child:Contract)<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
                                 WHERE NOT (acc)-[:To]->(contract)
                                 RETURN friend, otherTransaction, contract`);
 }
 
 export const generateRecommendationForAddr = async (
-    addr: string
+  addr: string
 ): Promise<AccountResponse[]> => {
-    //check it exists in the graph
-    const friendTxITransactions: Map<String, TxI[]> = new Map();
+  //check it exists in the graph
+  const friendTxITransactions: Map<String, TxI[]> = new Map();
 
-    //get users that have interacted the same contracts as the current address
-    const res = await computeFriendsAndContracts(addr);
+  //get users that have interacted the same contracts as the current address
+  const res = await computeFriendsAndContracts(addr);
 
-    if (res.records.length === 0) {
-        // add current user and their transactions to the graph
-        const payload: Payload = {
-            jsonrpc: "2.0",
-            method: "alchemy_getAssetTransfers",
-            params: [
-                {
-                    fromBlock: "0x0",
-                    fromAddress: addr,
-                    category: ["external", "internal", "token"],
-                    maxCount: "0x14",
-                },
-            ],
-        };
-        const transactions = await getTransactionsWithPagination(payload, true);
-
-        const newTransaction = await createMultipleTx(transactions);
-        console.log("new transaction: ", newTransaction);
-        //TODO: fix deadlock issues and make faster
-        const res = await computeFriendsAndContracts(addr.toLowerCase());
-        return await getAndRankContracts(
-            addr.toLowerCase(),
-            res,
-            friendTxITransactions
-        );
-    } else {
-        return await getAndRankContracts(addr, res, friendTxITransactions);
-    }
-};
-
-const getAndRankContracts = async (
-    addr: string,
-    res: QueryResult,
-    friendTxITransactions: Map<String, TxI[]>
-) => {
-    const similarUsers: Account[] = [];
-
-    res.records.map((el) => {
-        const neo4jReadResult = el as unknown as Neo4JReadResult;
-        const fromAddressMaybe = neo4jReadResult._fields[0]
-            .properties as Account;
-        const edge = neo4jReadResult._fields[1].properties as TxI;
-
-        if (isAccount(fromAddressMaybe)) {
-            similarUsers.push({
-                addr: fromAddressMaybe.addr,
-                isUser: true,
-            });
-            edge.from = fromAddressMaybe.addr;
-        }
-
-        if (neo4jReadResult._fields.length === 3) {
-            edge.to = (neo4jReadResult._fields[2].properties as Account).addr;
-
-            const maybePrevTransactions = friendTxITransactions.get(
-                fromAddressMaybe.addr
-            );
-
-            if (maybePrevTransactions) {
-                maybePrevTransactions.push(edge);
-            } else {
-                friendTxITransactions.set(fromAddressMaybe.addr, [edge]);
-            }
-        }
-    });
-    console.log(friendTxITransactions.size);
-
-    const ranks = await rankResults(
-        { addr, isUser: true },
-        similarUsers,
-        friendTxITransactions
+  if (res.records.length === 0) {
+    // add current user and their transactions to the graph
+    const payload: Payload = {
+      jsonrpc: "2.0",
+      method: "alchemy_getAssetTransfers",
+      params: [
+        {
+          fromBlock: "0x0",
+          fromAddress: addr,
+          category: ["external", "internal", "token"],
+          maxCount: "0x14",
+        },
+      ],
+    };
+    const transactionsDate = new Date().getTime();
+    const transactions = await getTransactionsWithPagination(payload, true);
+    console.log(
+      "[profile] finished getting transactions in ",
+      new Date().getTime() - transactionsDate
     );
 
-    console.log("done with ranking");
+    // const storeInDb = new Date().getTime();
+    //so we don't have to wait for this to be written in the graph database, we don't await it and try to
+    //to execute the queries on the other contracts
+    createMultipleTx(transactions).catch((ex) =>
+      console.log("Error writing new user to the database")
+    );
 
-    //recommend all 20 smart contracts of the most similar users
-    const responses = await limiter.schedule(() => {
-        const promises: Promise<AccountResponse[]>[] = [];
+    return await getAndRankContractsNewUser(
+      transactions,
+      addr,
+      friendTxITransactions
+    );
+  } else {
+    return await getAndRankContracts(addr, res.records, friendTxITransactions);
+  }
+};
 
-        for (const rank of ranks) {
-            promises.push(
-                new Promise(async (resolve) => {
-                    const similarSmartContracts = await executeReadQuery(
-                        `MATCH (acc:User {addr: '${rank.account.addr}'})-[:To]->(child:Contract)
+const getAndRankContractsNewUser = async (
+  transactions: TxI[],
+  addr: string,
+  friendTxITransactions: Map<String, TxI[]>
+) => {
+  const current = new Date().getTime();
+  const responses = await limiter.schedule(() => {
+    const promises: Promise<Record[]>[] = [];
+    for (const transaction of transactions) {
+      //is a smart contract
+      if (!transaction.toIsUser) {
+        promises.push(
+          new Promise<Record[]>(async (resolve) => {
+            const res =
+              await executeReadQuery(`MATCH (child:Contract { addr: '${transaction.to}'})<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
+                                    RETURN friend, otherTransaction, contract`);
+            resolve(res.records);
+          })
+        );
+      }
+    }
+    return Promise.all(promises);
+  });
+
+  const result = await getAndRankContracts(
+    addr.toLowerCase(),
+    responses.reduce((prev, current) => [...prev, ...current]),
+    friendTxITransactions
+  );
+  console.log(
+    "[profile] full new user flow in ",
+    new Date().getTime() - current
+  );
+  return result;
+};
+
+//parses a single element from a graph query that looks for similar users who have interacted with
+//potential smart contracts to recommend
+const parseGraphResultElement = (
+  el: unknown,
+  friendTxITransactions: Map<String, TxI[]>,
+  similarUsers: Account[]
+) => {
+  const neo4jReadResult = el as unknown as Neo4JReadResult;
+  const fromAddressMaybe = neo4jReadResult._fields[0].properties as Account;
+  const edge = neo4jReadResult._fields[1].properties as TxI;
+
+  if (isAccount(fromAddressMaybe)) {
+    similarUsers.push({
+      addr: fromAddressMaybe.addr,
+      isUser: true,
+    });
+    edge.from = fromAddressMaybe.addr;
+  }
+
+  if (neo4jReadResult._fields.length === 3) {
+    edge.to = (neo4jReadResult._fields[2].properties as Account).addr;
+
+    const maybePrevTransactions = friendTxITransactions.get(
+      fromAddressMaybe.addr
+    );
+
+    if (maybePrevTransactions) {
+      maybePrevTransactions.push(edge);
+    } else {
+      friendTxITransactions.set(fromAddressMaybe.addr, [edge]);
+    }
+  }
+};
+
+const recommendContractFromRanked = async (ranks: DistAccount[]) => {
+  const responses = await limiter.schedule(() => {
+    const promises: Promise<AccountResponse[]>[] = [];
+
+    for (const rank of ranks) {
+      promises.push(
+        new Promise(async (resolve) => {
+          const similarSmartContracts = await executeReadQuery(
+            `MATCH (acc:User {addr: '${rank.account.addr}'})-[:To]->(child:Contract)
                              RETURN child
                              LIMIT 20
                  `
-                    );
+          );
 
-                    const currentRecommendedSmartContracts: AccountResponse[] =
-                        [];
-                    similarSmartContracts.records.map(async (el) => {
-                        const neo4jReadResult =
-                            el as unknown as Neo4JReadResult;
-                        const maybeAccount =
-                            neo4jReadResult._fields[0].properties;
+          const currentRecommendedSmartContracts: AccountResponse[] = [];
+          similarSmartContracts.records.map(async (el) => {
+            const neo4jReadResult = el as unknown as Neo4JReadResult;
+            const maybeAccount = neo4jReadResult._fields[0].properties;
 
-                        if (isAccount(maybeAccount)) {
-                            currentRecommendedSmartContracts.push(
-                                getAccountResponse(maybeAccount.addr)
-                            );
-                        } else {
-                            throw new Error("should not happen");
-                        }
-                        resolve(currentRecommendedSmartContracts);
-                    });
-                })
-            );
-        }
-        return Promise.all(promises);
-    });
+            if (isAccount(maybeAccount)) {
+              currentRecommendedSmartContracts.push(
+                getAccountResponse(maybeAccount.addr)
+              );
+            } else {
+              throw new Error("should not happen");
+            }
+            resolve(currentRecommendedSmartContracts);
+          });
+        })
+      );
+    }
+    return Promise.all(promises);
+  });
 
-    return [
-        ...new Set(
-            responses.reduce((prev: any, current: any) => {
-                return [...prev, ...current];
-            }, [])
-        ),
-    ].slice(0, 20);
+  return [
+    ...new Set(
+      responses.reduce((prev: any, current: any) => {
+        return [...prev, ...current];
+      }, [])
+    ),
+  ].slice(0, 20);
+};
+
+const getAndRankContracts = async (
+  addr: string,
+  records: Record[],
+  friendTxITransactions: Map<String, TxI[]>
+) => {
+  const similarUsers: Account[] = [];
+  let currentTime = new Date().getTime();
+  records.map((el) =>
+    parseGraphResultElement(el, friendTxITransactions, similarUsers)
+  );
+
+  const ranks = await rankResults(
+    { addr, isUser: true },
+    similarUsers,
+    friendTxITransactions
+  );
+
+  console.log(
+    "[profile] done with ranking in ",
+    new Date().getTime() - currentTime
+  );
+  //recommend all 20 smart contracts of the most similar users
+  const contractTime = new Date().getTime();
+  const recommended = await recommendContractFromRanked(ranks);
+  console.log(
+    "[profile] done with recommending in ",
+    new Date().getTime() - contractTime
+  );
+  console.log(
+    "[profile] done with getAndRankContracts in ",
+    new Date().getTime() - currentTime
+  );
+  return recommended;
 };
 
 export const getSimilarContracts = async (addr: string) => {
-    const res = await executeReadQuery(`
+  const res = await executeReadQuery(`
         MATCH (acc:Contract {addr: '${addr}'})<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
         WHERE NOT (acc)-[:To]->(contract)
         RETURN contract
     `);
-    const addresses = Array.from(
-        new Set(res.records.map((r) => r.get("contract").properties.addr))
-    );
-    return await batchCompare(addr, addresses);
+  const addresses = Array.from(
+    new Set(res.records.map((r) => r.get("contract").properties.addr))
+  );
+  return await batchCompare(addr, addresses);
 };
 
 export const getHotContracts = async (n: number) => {
-    const res = await executeReadQuery(`
+  const res = await executeReadQuery(`
         MATCH (a: User)-[:To]->(b: Contract)
         RETURN b, COUNT(a) as users
         ORDER BY users DESC LIMIT 10`);
-    //console.log(res.records);
-    const addresses = res.records.map((r) => ({
-        addr: r.get("b").properties.addr,
-        count: Number(r.get("users")),
-    }));
-    return addresses;
+  //console.log(res.records);
+  const addresses = res.records.map((r) => ({
+    addr: r.get("b").properties.addr,
+    count: Number(r.get("users")),
+  }));
+  return addresses;
 };
 
 interface Neo4JReadResult {
-    keys: string[];
-    length: number;
-    _fields: Fields[];
-    _fieldLookup: {
-        child: number;
-    };
+  keys: string[];
+  length: number;
+  _fields: Fields[];
+  _fieldLookup: {
+    child: number;
+  };
 }
 
 interface Fields {
-    identity: {
-        low: number;
-        high: number;
-    };
-    labels: string[];
-    properties: Account | TxI;
+  identity: {
+    low: number;
+    high: number;
+  };
+  labels: string[];
+  properties: Account | TxI;
 }
 
 const isAccount = (val: any): val is Account => {
-    return typeof val.addr === "string";
+  return typeof val.addr === "string";
 };
 
 //kind of hacky
 const isTransfer = (val: Account | TxI): val is TxI => {
-    return !isAccount(val);
+  return !isAccount(val);
 };

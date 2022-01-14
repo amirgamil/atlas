@@ -2,12 +2,17 @@ import React, { useState, useContext } from "react";
 import Web3Modal from "web3modal";
 import { providers, Signer } from "ethers";
 import WalletConnectProvider from "@walletconnect/web3-provider";
+import { Response, Account } from "../types";
+import axios from "axios";
 
 interface Context {
   openModal: () => void;
   signOut: () => void;
   signer?: providers.JsonRpcSigner;
   address?: string;
+  recommendations: Account[];
+  isLoadingRecommendations: boolean;
+  loadRecommendations: () => void;
 }
 
 export const AppContext = React.createContext<Context>({
@@ -15,6 +20,9 @@ export const AppContext = React.createContext<Context>({
   signOut: () => {},
   signer: undefined,
   address: "",
+  recommendations: [],
+  isLoadingRecommendations: false,
+  loadRecommendations: () => {},
 });
 
 export const AppContextProvider = (props: any) => {
@@ -22,6 +30,9 @@ export const AppContextProvider = (props: any) => {
     undefined
   );
   const [address, setAddress] = useState<string | undefined>(undefined);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] =
+    useState<boolean>(false);
+  const [recommendations, setRecommendations] = useState<Account[]>([]);
 
   const openModal = async () => {
     const providerOptions = {
@@ -48,12 +59,30 @@ export const AppContextProvider = (props: any) => {
 
     const address = await signer.getAddress();
     setAddress(address);
+    //loading recommendations for users can take a long time, so we start loading them as soon as they've
+    //signed in
+    loadRecommendations(address);
+  };
+
+  const loadRecommendations = (address: string) => {
+    setIsLoadingRecommendations(true);
+    console.log("loading recommendations");
+    axios
+      .get<Response>("http://localhost:3001/recommend", {
+        params: {
+          address: address,
+        },
+      })
+      .then((recommendations) => {
+        setIsLoadingRecommendations(false);
+        setRecommendations(recommendations.data.results);
+      });
   };
 
   const signOut = () => {
     setSigner(undefined);
     setAddress(undefined);
-  }
+  };
 
   return (
     <AppContext.Provider
@@ -62,6 +91,8 @@ export const AppContextProvider = (props: any) => {
         signOut,
         signer,
         address,
+        recommendations,
+        loadRecommendations,
       }}
     >
       <>{props.children}</>
