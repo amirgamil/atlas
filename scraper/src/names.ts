@@ -1,4 +1,5 @@
 import { AccountResponse } from "./scraper/types";
+import * as contractNames from "./contractnames.json";
 
 const names: Record<string, Record<string, string>> = {
   "0x00000000cd6eab3b2c4b0381247443b0cce5c40b": {
@@ -15004,15 +15005,18 @@ const names: Record<string, Record<string, string>> = {
 };
 
 const getName = (addr: string): string => {
-  return names[addr] && names[addr].name ? names[addr].name : addr;
+  let name = names[addr] && names[addr].name ? names[addr].name : addr;
+  if (!name) name = (contractNames as Record<string, string>)[addr];
+  return name
 };
 
 export const getAccountResponse = (addr: string): AccountResponse => {
-  const name = names[addr] && names[addr].name ? names[addr].name : undefined;
+  let name = names[addr] && names[addr].name ? names[addr].name : undefined;
+  if (!name) name = (contractNames as Record<string, string>)[addr];
   if (name) {
-    return { addr, name: name }; 
+    return { addr, name: name };
   }
   return { addr };
-}
+};
 
 export default getName;
