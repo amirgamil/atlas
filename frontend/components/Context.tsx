@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import Web3Modal from "web3modal";
 import { providers, Signer } from "ethers";
 import WalletConnectProvider from "@walletconnect/web3-provider";
-import { Response, Account } from "../types";
+import { Response, Account, FeedbackDetails } from "../types";
 import axios from "axios";
 
 interface Context {
@@ -13,6 +13,10 @@ interface Context {
   recommendations: Account[];
   isLoadingRecommendations: boolean;
   loadRecommendations: (address: string) => void;
+  updateRecommendations: (
+    address: string,
+    feedback: Record<string, FeedbackDetails>
+  ) => void;
 }
 
 export const AppContext = React.createContext<Context>({
@@ -23,6 +27,7 @@ export const AppContext = React.createContext<Context>({
   recommendations: [],
   isLoadingRecommendations: false,
   loadRecommendations: () => {},
+  updateRecommendations: () => {},
 });
 
 export const AppContextProvider = (props: any) => {
@@ -64,6 +69,27 @@ export const AppContextProvider = (props: any) => {
     loadRecommendations(address);
   };
 
+  const updateRecommendations = (
+    address: string,
+    feedback: Record<string, FeedbackDetails>
+  ) => {
+    setIsLoadingRecommendations(true);
+    console.log("updating recommendations");
+    axios
+      .post<Response>("http://localhost:3001/recommendFeedback", {
+        params: {
+          address: address,
+        },
+        body: {
+          feedback,
+        },
+      })
+      .then((recommendations) => {
+        setIsLoadingRecommendations(false);
+        setRecommendations(recommendations.data.results);
+      });
+  };
+
   const loadRecommendations = (address: string) => {
     setIsLoadingRecommendations(true);
     console.log("loading recommendations");
@@ -94,6 +120,7 @@ export const AppContextProvider = (props: any) => {
         recommendations,
         loadRecommendations,
         isLoadingRecommendations,
+        updateRecommendations,
       }}
     >
       <>{props.children}</>
