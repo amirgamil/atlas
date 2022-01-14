@@ -107,7 +107,7 @@ class Scraper {
       params: [addr],
     }));
     const res = await axios.post(
-      `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_SCRAPING_API_KEY}`,
+      `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
       body
     );
     const results = res.data as Array<any>;
@@ -128,7 +128,7 @@ class Scraper {
       params: [tx],
     }));
     const res = await axios.post(
-      `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_SCRAPING_API_KEY}`,
+      `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
       body
     );
 
@@ -147,7 +147,7 @@ class Scraper {
       params: ["0x" + blockNo.toString(16), false],
     };
     const res = await axios.post(
-      `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_SCRAPING_API_KEY}`,
+      `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
       body
     );
     return Number(res.data.result.timestamp);
@@ -172,7 +172,7 @@ class Scraper {
       payload.params[0]["fromAddress"] = this.fromAddress;
     }
     const res = await axios.post<Response>(
-      `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_SCRAPING_API_KEY}`,
+      `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
       payload
     );
 
@@ -206,7 +206,7 @@ class Scraper {
         payload.params[0]["fromAddress"] = this.fromAddress;
       }
       const result = await axios.post<Response>(
-        `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_SCRAPING_API_KEY}`,
+        `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
         payload
       );
       const j = result.data;

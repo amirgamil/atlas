@@ -85,7 +85,7 @@ async function getTransactionsWithPagination(
   paginate = false
 ): Promise<TxI[]> {
   const transactions = await axios.post<Response>(
-    `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
+    `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_SCRAPING_API_KEY}`,
     payload
   );
 
@@ -106,7 +106,7 @@ async function getTransactionsWithPagination(
   while (pageKey !== undefined && paginate && count < 4) {
     payload.params[0].pageKey = pageKey;
     const next = await axios.post<Response>(
-      `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
+      `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_SCRAPING_API_KEY}`,
       payload
     );
     if (next.data.result.transfers) {
