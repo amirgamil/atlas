@@ -5,7 +5,6 @@ import {useRouter} from "next/router";
 
 const Nav = () => {
   const context = useAppContext();
-  const router = useRouter()
 
   return (
     <div className="w-full pt-8 h-26 flex text-white">
@@ -23,11 +22,6 @@ const Nav = () => {
           <Link href={`/graph?center=${context.address}`}>
             <a className="button secondary mr-4">
               Local Graph
-            </a>
-          </Link>
-          <Link href={`/recommend?center=${context.address}`}>
-            <a className="button secondary mr-4">
-              For You
             </a>
           </Link>
           <Link href={`/explore`}>
