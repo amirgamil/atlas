@@ -5,8 +5,8 @@ import axios from "axios"
 const serverURL = "http://localhost:3001"
 
 // @ts-ignore
-const fetcher = url => axios.get(url).then(res => res.data)
+export const fetcher = url => axios.get(serverURL + url).then(res => res.data)
 
-const useData = (url: string) => useSWR(serverURL + url, fetcher)
+const useData = (url: string) => useSWR(url, fetcher)
 
 export default useData

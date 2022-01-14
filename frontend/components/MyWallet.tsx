@@ -1,11 +1,10 @@
 import useData from "../hooks/useData";
 import UhOh from "./UhOh";
 import Loader from "./Loader";
-import Token, {IToken} from "./TokenDisplay";
+import Token, {IToken} from "./WalletTokenDisplay";
 
 function TokenList({address}: {address: string}) {
   const { data, error } = useData(`/tokens?address=${address}`)
-  console.log(data, error)
 
   if (error) return <UhOh>Failed to load tokens</UhOh>
   if (!data) return <Loader loading />

@@ -1,12 +1,12 @@
 import {PulseLoader} from "react-spinners";
 
-const Loader = ({loading}: {loading: boolean}) => {
-  return (<div className="text-center w-full my-20">
+const Loader = ({loading, small}: {loading: boolean, small?: boolean}) => {
+  return (<div className={small ? "" : "text-center w-full my-20"}>
     <PulseLoader
       color="#fff"
       loading={loading}
-      size={15}
-      margin={20}
+      size={small ? 5 : 15}
+      margin={small ? 10 : 20}
     />
   </div>)
 }
