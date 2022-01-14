@@ -27,8 +27,8 @@ const Home: NextPage = () => {
   const context = useAppContext();
   const [address, setAddress] = useState<string>("");
   const [recommended, setRecommended] = useState<Array<Account>>([]);
-  const [hot, setHot] = useState<Array<Account>>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [hot, setHot] = useState<Array<Account>>([]);
 
   useEffect(() => {
     // Get hot contracts
@@ -46,26 +46,6 @@ const Home: NextPage = () => {
     f();
   }, []);
 
-  const loadRecommendations = async () => {
-    setLoading(true);
-    try {
-      const recommendations = await axios.get<Response>(
-        "http://localhost:3001/recommend",
-        {
-          params: {
-            address: address,
-          },
-        }
-      );
-      console.log("recommended: ", recommendations.data.results);
-      setRecommended(recommendations.data.results);
-    } catch (err: any) {
-      alert(err);
-    }
-    setLoading(false);
-  };
-
-
   return (
     <div className={styles.container}>
       <Nav />
@@ -79,10 +59,7 @@ const Home: NextPage = () => {
         />
       </Head>
       <main className={`overflow-y-auto ${styles.main}`}>
-        {context.address ?
-          <MyWallet address={context.address}/> :
-          <Splash/>
-        }
+        {context.address ? <MyWallet address={context.address} /> : <Splash />}
         {/*<div>*/}
         {/*  <h1 className="text-center py-4">Transaction Graph</h1>*/}
         {/*  <div className="mt-1">*/}
