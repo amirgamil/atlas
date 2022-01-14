@@ -8,6 +8,7 @@ import {
 } from "./scraper/recommendation";
 import { converter, getTokensForAddress } from "./util";
 import { init } from "./neo4jWrapper";
+import getName from "./names";
 
 const app = express();
 //CHANGE FOR PROD
@@ -41,7 +42,8 @@ app.get("/hot", async (req, res) => {
   try {
     console.log("getting results");
     const results = await getHotContracts(10);
-    res.json({ results });
+    const out = results.map((r) => ({ ...r, name: getName(r.addr) }));
+    res.json({ results: out });
   } catch (err: any) {
     console.log(err);
     res.status(503).send("Error");

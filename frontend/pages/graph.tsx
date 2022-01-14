@@ -8,11 +8,9 @@ const UserGraph = () => {
   const context = useAppContext();
   console.log("address: ", context.address);
   return (
-    <div>
-      <SafeHydrate>
-        <Graph user={context.address} />
-      </SafeHydrate>
-    </div>
+    <SafeHydrate>
+      <Graph user={context.address!} />
+    </SafeHydrate>
   );
 };
 

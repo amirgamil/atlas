@@ -1,11 +1,9 @@
 import useSWR from 'swr'
 import axios from "axios"
-
-// CHANGE FOR PROD
-const serverURL = "http://localhost:3001"
+import c from '../constants'
 
 // @ts-ignore
-export const fetcher = url => axios.get(serverURL + url).then(res => res.data)
+export const fetcher = url => axios.get(c.serverUri + url).then(res => res.data)
 
 const useData = (url: string) => useSWR(url, fetcher)
 

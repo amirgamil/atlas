@@ -114,8 +114,8 @@ const graph = ({ user }: { user: string }) => {
       id={"graphcontainer"}
       ref={visRef}
       style={{
-        width: `600px`,
-        height: `400px`,
+        width: `1200px`,
+        height: `800px`,
         backgroundColor: `white`,
       }}
     />
