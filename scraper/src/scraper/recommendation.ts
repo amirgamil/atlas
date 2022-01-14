@@ -246,7 +246,7 @@ const getAndRankContractsNewUser = async (
 
   const result = await getAndRankContracts(
     addr.toLowerCase(),
-    responses.reduce((prev, current) => [...prev, ...current]),
+    responses.reduce((prev, current) => [...prev, ...current], []),
     friendTxITransactions
   );
   console.log(
@@ -456,14 +456,15 @@ export const submitFeedback = async (
 ) => {
   const records: Neo4jRecord[] = [];
   for (const [address, feedbackDetails] of Object.entries(feedbackAddrs)) {
-    if (feedbackDetails.isGoodRecommendation) {
+    if (feedbackDetails.isGoodRecommendation && address) {
       const res = await executeReadQuery(`
                 MATCH (acc:Contract {addr: '${address}'})<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
                 WHERE NOT (acc)-[:To]->(contract)
-                RETURN contract
+                RETURN friend, otherTransaction, contract
             `);
-      //@ts-ignore
-      records.push(res.records);
+      if (Object.keys(res).length !== 0) {
+        records.push(...res.records);
+      }
     }
   }
   return await getAndRankContracts(

@@ -77,12 +77,8 @@ export const AppContextProvider = (props: any) => {
     console.log("updating recommendations");
     axios
       .post<Response>("http://localhost:3001/recommendFeedback", {
-        params: {
-          address: address,
-        },
-        body: {
-          feedback,
-        },
+        feedback,
+        address: address,
       })
       .then((recommendations) => {
         setIsLoadingRecommendations(false);

@@ -75,9 +75,8 @@ app.get("/tokens", async (req, res) => {
 app.post("/recommendFeedback", async (req, res, next) => {
   try {
     //@ts-ignore
-    console.log(req.body.feedback);
-    //@ts-ignore
-    const results = submitFeedback(req.query.address, req.body.feedback);
+    console.log(req.body);
+    const results = submitFeedback(req.body.address, req.body.feedback);
     res.send({ results });
   } catch (ex: unknown) {
     console.log(ex);
