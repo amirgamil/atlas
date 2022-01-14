@@ -12,7 +12,7 @@ interface Context {
   address?: string;
   recommendations: Account[];
   isLoadingRecommendations: boolean;
-  loadRecommendations: () => void;
+  loadRecommendations: (address: string) => void;
 }
 
 export const AppContext = React.createContext<Context>({
@@ -93,6 +93,7 @@ export const AppContextProvider = (props: any) => {
         address,
         recommendations,
         loadRecommendations,
+        isLoadingRecommendations,
       }}
     >
       <>{props.children}</>
