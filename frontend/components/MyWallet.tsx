@@ -52,7 +52,7 @@ export const MyWallet: React.FC<Props> = ({ address }) => {
         <h1 className="text-gradient text-4xl">For you</h1>
         <p>A hand-picked selection of recommendations you might find fun.</p>
         {context.isLoadingRecommendations && <Loader loading />}
-        {context.recommendations &&
+        {!context.isLoadingRecommendations &&
           context.recommendations
             .filter((item, pos, self) => self.indexOf(item) == pos)
             .slice(0, 6)

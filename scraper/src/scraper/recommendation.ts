@@ -235,7 +235,9 @@ const getAndRankContractsNewUser = async (
           new Promise<Neo4jRecord[]>(async (resolve) => {
             const res =
               await executeReadQuery(`MATCH (child:Contract { addr: '${transaction.to}'})<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
-                                    RETURN friend, otherTransaction, contract`);
+                                    RETURN friend, otherTransaction, contract
+                                    LIMIT 25`);
+
             resolve(res.records);
           })
         );
@@ -454,22 +456,33 @@ export const submitFeedback = async (
   addr: string,
   feedbackAddrs: Record<string, AccountFeedback>
 ) => {
-  const records: Neo4jRecord[] = [];
+  const promises: Promise<string[]>[] = [];
+  const seenAddresses: Set<string> = new Set(Object.keys(feedbackAddrs));
   for (const [address, feedbackDetails] of Object.entries(feedbackAddrs)) {
     if (feedbackDetails.isGoodRecommendation && address) {
-      const res = await executeReadQuery(`
+      promises.push(
+        new Promise<string[]>(async (resolve) => {
+          const res = await executeReadQuery(`
                 MATCH (acc:Contract {addr: '${address}'})<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
-                WHERE NOT (acc)-[:To]->(contract)
-                RETURN friend, otherTransaction, contract
+                RETURN contract
+                LIMIT 25
             `);
-      if (Object.keys(res).length !== 0) {
-        records.push(...res.records);
-      }
+          const addresses = res.records.map(
+            //@ts-ignore
+            (el) => el._fields[0].properties.addr
+          );
+          const similarContracts = await batchCompare(
+            address,
+            addresses.filter((addr) => !seenAddresses.has(addr))
+          );
+          resolve(similarContracts.filter((el) => el !== address));
+        })
+      );
     }
   }
-  return await getAndRankContracts(
-    addr.toLowerCase(),
-    records,
-    new Map<String, TxI[]>()
+  const resultsSet: Set<string> = new Set();
+  (await Promise.all(promises)).map((el) =>
+    el.forEach((ex) => resultsSet.add(ex))
   );
+  return [...resultsSet].slice(0, 20).map((el) => getAccountResponse(el));
 };

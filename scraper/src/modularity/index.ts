@@ -86,7 +86,7 @@ export async function batchCompare(main: string, contracts: Array<string>) {
     }));
 
     out.sort((a, b) => b.score - a.score);
-    return out
+    return out.map(el => el.address);
 }
 
 async function main() {
