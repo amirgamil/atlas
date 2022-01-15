@@ -2,9 +2,9 @@ import axios from "axios";
 
 export const getTokens = async (addr: string) => {
   const res = await axios.get(`http://api.ethplorer.io/getAddressInfo/${addr}?apiKey=${process.env.ETHPLORER_API_KEY}`)
-  return res.data.tokens
+  const erc20Only = res.data.tokens.filter((token: any) => token.tokenInfo.decimals !== "0")
+  return erc20Only
 }
-
 
 export const getNFTs = async (addr: string) => {
   const res = await axios.get(`https://api.opensea.io/api/v1/assets?owner=${addr}`)
