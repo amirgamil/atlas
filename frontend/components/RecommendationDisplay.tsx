@@ -1,7 +1,13 @@
 import Avatar from "boring-avatars";
-import React from "react";
-import { Account, Feedback } from "../types";
+import React, { useCallback, useState } from "react";
 import styled from "styled-components";
+import { fetcher } from "../hooks/useData";
+import Loader from "./Loader";
+
+export interface Account {
+  address: string;
+  name: string;
+}
 
 interface Props {
   props: Account;
@@ -46,7 +52,7 @@ export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
         <Avatar
           size={30}
           variant="marble"
-          name={props.name || props.addr}
+          name={props.name}
           colors={["#3f5d88", "#0087b6", "#00b1b5", "#00d47f", "#a8eb12"]}
         />
       </div>
@@ -82,6 +88,54 @@ export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
             👎
           </StyledButton>
         </div>
+      </div>
+    </div>
+  );
+};
+
+const fetchRelatedFn = async (addr: string) => {
+  return await fetcher(`/similar-neighbors?address=${addr}`);
+};
+
+export const ExpandableRecommendation = ({ address, name }: Account) => {
+  const [children, setChildren] = useState<Account[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const fetchChildren = useCallback(async () => {
+    setLoading(true);
+    const recs = await fetchRelatedFn(address);
+    setChildren(recs);
+    setLoading(false);
+  }, [address]);
+
+  return (
+    <div>
+      <div className="glass my-6 py-2 px-4 w-3/5 flex" onClick={fetchChildren}>
+        <div className="my-auto mr-4">
+          <Avatar
+            size={30}
+            variant="marble"
+            name={name}
+            colors={["#3f5d88", "#0087b6", "#00b1b5", "#00d47f", "#a8eb12"]}
+          />
+        </div>
+        <div className="flex items-center w-full mr-3">
+          <h3 className="text-lg">
+            <span className="opacity-50 text-base font-normal"></span>
+          </h3>
+          <a
+            className="opacity-50 text-sm"
+            href={`https://etherscan.io/address/${address}`}
+          >
+            {name}
+          </a>
+        </div>
+      </div>
+      <div className="ml-8">
+        {loading && <Loader loading={loading} small />}
+        {children.map((tok) => (
+          <ExpandableRecommendation {...tok} />
+        ))}
       </div>
     </div>
   );

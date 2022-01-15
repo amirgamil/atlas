@@ -3,6 +3,11 @@ import Avatar from "boring-avatars";
 import { useCallback, useState } from "react";
 import Loader from "./Loader";
 import { fetcher } from "../hooks/useData";
+import {
+  ExpandableRecommendation,
+  Recommendation,
+} from "./RecommendationDisplay";
+import { Account } from "../types";
 
 export interface IToken {
   balance: number;
@@ -16,14 +21,12 @@ export interface IToken {
   type: string;
 }
 
-const fetchRelatedFn = async (addr: string): Promise<IToken[]> => {
-  const json = await fetcher(`/similar-neighbors?address=${addr}`);
-  console.log(json);
-  return [];
+const fetchRelatedFn = async (addr: string) => {
+  return await fetcher(`/similar-neighbors?address=${addr}`);
 };
 
 function Token(props: IToken) {
-  const [children, setChildren] = useState<IToken[]>([]);
+  const [children, setChildren] = useState<Account[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const fetchChildren = useCallback(async () => {
@@ -46,12 +49,12 @@ function Token(props: IToken) {
             <Image
               className={isNFT ? "rounded-md" : "rounded-full"}
               src={props.metadata.logo}
-              width={30}
-              height={30}
+              width={40}
+              height={40}
             />
           ) : (
             <Avatar
-              size={30}
+              size={40}
               variant="marble"
               name={props.name || props.symbol || props.contractAddress}
               colors={["#3f5d88", "#0087b6", "#00b1b5", "#00d47f", "#a8eb12"]}
@@ -67,10 +70,10 @@ function Token(props: IToken) {
               </span>
             </h3>
             <a
-              className="opacity-30 text-sm font-normal underline"
+              className="opacity-30 text-sm font-normal underline underline-offset-2"
               href={`https://etherscan.io/address/${props.contractAddress}`}
             >
-              {props.contractAddress}
+              View on Etherscan
             </a>
           </div>
         ) : (
@@ -82,10 +85,10 @@ function Token(props: IToken) {
               </span>
             </h3>
             <a
-              className="opacity-30 text-sm font-normal underline"
+              className="opacity-30 text-sm font-normal underline underline-offset-2"
               href={`https://etherscan.io/address/${props.contractAddress}`}
             >
-              {props.contractAddress}
+              View on Etherscan
             </a>
           </div>
         )}
@@ -93,7 +96,7 @@ function Token(props: IToken) {
       <div className="ml-8">
         {loading && <Loader loading={loading} small />}
         {children.map((tok) => (
-          <Token {...tok} />
+          <ExpandableRecommendation {...tok} />
         ))}
       </div>
     </div>

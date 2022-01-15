@@ -107,5 +107,3 @@ async function main() {
         console.log(`[${jaccardIndex(getSigHashes(a.opcodes), getSigHashes(b.opcodes))}] ${a.name}<->${b.name}`)
     })
 }
-
-// main()

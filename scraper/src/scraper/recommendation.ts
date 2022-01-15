@@ -372,11 +372,10 @@ const getAndRankContracts = async (
 
 export const getSimilarContracts = async (addr: string) => {
   let res = await executeReadQuery(`
-        MATCH (acc:Contract {addr: '${addr}'})<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
-        WHERE NOT (acc)-[:To]->(contract)
-        RETURN contract
+      MATCH (contract:Contract {addr: '${addr}'})-[:To]->(user:User)
+      RETURN contract
+      LIMIT 3
     `);
-  console.log(res.records.length);
   if (res.records.length === 0) {
     const payload: Payload = {
       jsonrpc: "2.0",
@@ -386,7 +385,7 @@ export const getSimilarContracts = async (addr: string) => {
           fromBlock: "0x0",
           fromAddress: addr,
           category: ["external", "internal", "token"],
-          maxCount: "0x14",
+          maxCount: "0xa",
         },
       ],
     };
@@ -394,25 +393,26 @@ export const getSimilarContracts = async (addr: string) => {
     console.log("fetched transactions similar: ", results);
     await createMultipleTx(results);
     console.log("wrote new transactions in db for similar");
-    res = await executeReadQuery(`
-        MATCH (acc:Contract {addr: '${addr}'})<-[:To]-(friend:User)-[otherTransaction:To]->(contract:Contract)
-        WHERE NOT (acc)-[:To]->(contract)
-        RETURN contract
-    `);
-    console.log("executed query");
   }
+  res = await executeReadQuery(`
+      MATCH (contract:Contract {addr: '${addr}'})-[:To]->(user:User)-[:To]-(similar:Contract)
+      RETURN similar
+      LIMIT 25
+    `);
+  const similar = res.records.map((r) => r.get("similar").properties.addr)
+  console.log("executed query", similar);
   const addresses = Array.from(
-    new Set(res.records.map((r) => r.get("contract").properties.addr))
+    new Set(similar)
   );
   return await batchCompare(addr, addresses);
 };
 
 export const getHotContracts = async (n: number) => {
   const res = await executeReadQuery(`
-        MATCH (a: User)-[:To]->(b: Contract)
+        MATCH (a: User)-[r:To]->(b: Contract)
+        WHERE r.count >= 1
         RETURN b, COUNT(a) as users
         ORDER BY users DESC LIMIT 10`);
-  //console.log(res.records);
   const addresses = res.records.map((r) => ({
     addr: r.get("b").properties.addr,
     count: Number(r.get("users")),

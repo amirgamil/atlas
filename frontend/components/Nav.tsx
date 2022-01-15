@@ -5,6 +5,11 @@ import {useRouter} from "next/router";
 
 const Nav = () => {
   const context = useAppContext();
+  const router = useRouter()
+
+  const goHome = () => {
+    router.push('/')
+  }
 
   return (
     <div className="w-full pt-8 h-26 flex text-white">
@@ -40,7 +45,7 @@ const Nav = () => {
         </>}
         <button
           className="cursor-pointer"
-          onClick={context.address ? () => {} : context.openModal}
+          onClick={context.address ? goHome : context.openModal}
         >
           {context.address
             ? `${context.address.slice(0, 8).toLowerCase()}...`
