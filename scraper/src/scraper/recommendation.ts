@@ -90,7 +90,11 @@ async function getTransactionsWithPagination(
   );
 
   //FIXME: I don't understand why this sometimes happens, maybe it's an Alchemy thing
-  if (!transactions.data.result) {
+  if (
+    !transactions.data.result ||
+    !transactions.data.result.transfers ||
+    transactions.data.result.transfers.length === 0
+  ) {
     return [];
   }
 
