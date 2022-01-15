@@ -92,7 +92,7 @@ const graph = ({ user }: { user: string }) => {
           [NEOVIS_ADVANCED_CONFIG]: {
             function: {
               color: (node: any) =>
-                node.properties.addr === user ? "yellow" : "blue",
+                node.properties.addr === user ? "yellow" : "#0087b6",
               title: (node: any) => node.properties.addr,
             },
           },
@@ -100,7 +100,7 @@ const graph = ({ user }: { user: string }) => {
         Contract: {
           [NEOVIS_ADVANCED_CONFIG]: {
             function: {
-              color: (node: any) => "red",
+              color: (node: any) => "#00d47f",
               title: async (node: any) => {
                 if (Object.keys(names).length === 0)
                   setAddrs((names) => [...names, node.properties.addr]);
