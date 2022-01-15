@@ -416,7 +416,7 @@ export const getSimilarContracts = async (addr: string) => {
 export const getHotContracts = async (n: number) => {
   const res = await executeReadQuery(`
         MATCH (a: User)-[r:To]->(b: Contract)
-        WHERE r.count >= 1
+        WHERE r.count >= 10
         RETURN b, COUNT(a) as users
         ORDER BY users DESC LIMIT 10`);
   const addresses = res.records.map((r) => ({

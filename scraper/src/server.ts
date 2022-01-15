@@ -41,7 +41,10 @@ app.get("/hot", async (req, res) => {
   try {
     console.log("getting results");
     const results = await getHotContracts(10);
-    const out = results.map((r) => ({ ...r, name: getName(r.addr) }));
+    const out = await Promise.all(results.map(async (r) => {
+      const name = await getName(r.addr)
+      return ({ address: r.addr, name })
+    }));
     res.json({ results: out });
   } catch (err: any) {
     console.log(err);
@@ -53,9 +56,10 @@ app.get("/similar-neighbors", async (req, res) => {
   try {
     const address = req.query.address as string;
     const similar = await getSimilarContracts(address);
-    //@ts-ignore
-    const out = similar.map((r) => ({ ...r, name: getName(r.address) }));
-    console.log(out);
+    const out = await Promise.all(similar.map(async (r) => {
+      const name = await getName(r)
+      return ({ address: r, name })
+    }));
     res.json(out.slice(0, 4));
   } catch (err: any) {
     console.log(err);
