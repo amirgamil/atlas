@@ -110,12 +110,12 @@ export const AppContextProvider = (props: any) => {
   const signOut = () => {
     setSigner(undefined);
     setAddress(undefined);
-    localStorage.setItem("WEB3_CONNECT_CACHED_PROVIDER", "");
+    window.localStorage.setItem("WEB3_CONNECT_CACHED_PROVIDER", "");
   };
 
   const attemptLogin = async () => {
     if (
-      localStorage.getItem("WEB3_CONNECT_CACHED_PROVIDER") &&
+      window.localStorage.getItem("WEB3_CONNECT_CACHED_PROVIDER") &&
       typeof window.ethereum !== "undefined"
     ) {
       const provider = window.ethereum;
