@@ -3,8 +3,8 @@ import Avatar from "boring-avatars";
 import { useCallback, useState } from "react";
 import Loader from "./Loader";
 import { fetcher } from "../hooks/useData";
-import { Recommendation } from "./RecommendationDisplay";
-import { Account } from "../types";
+import {ExpandableRecommendation, Recommendation} from "./RecommendationDisplay";
+import {Account} from "../types";
 
 export interface IToken {
   balance: number;
@@ -92,9 +92,7 @@ function Token(props: IToken) {
       </button>
       <div className="ml-8">
         {loading && <Loader loading={loading} small />}
-        {children.map((tok) => (
-          <Recommendation props={tok} setFeedback={() => {}} />
-        ))}
+        {children.map(tok => <ExpandableRecommendation {...tok}/>)}
       </div>
     </div>
   );
