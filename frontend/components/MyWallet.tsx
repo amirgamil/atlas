@@ -37,6 +37,7 @@ export const MyWallet: React.FC<Props> = ({ address }) => {
     setFeedback(feedbackCopy);
   };
 
+  console.log(context.recommendations);
   return (
     <div className="text-white w-1/2 m-auto">
       <div className="my-24">
@@ -53,9 +54,8 @@ export const MyWallet: React.FC<Props> = ({ address }) => {
         {context.isLoadingRecommendations && <Loader loading />}
         {!context.isLoadingRecommendations &&
           context.recommendations
-            .map(t => ({...t, name: t.name || t.addr}))
-            .filter((v,i,a)=>a.findIndex(t => (t.name === v.name)) === i)
-            .slice(0, 6)
+            .filter((item, pos, self) => self.indexOf(item) == pos)
+            .slice(0, 10)
             .map((el, i) => (
               <Recommendation
                 key={i}

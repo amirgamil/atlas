@@ -294,7 +294,7 @@ const parseGraphResultElement = (
 
 const recommendContractFromRanked = async (ranks: DistAccount[]) => {
   const responses = await limiter.schedule(() => {
-    const promises: Promise<AccountResponse[]>[] = [];
+    const promises: Promise<string[]>[] = [];
 
     for (const rank of ranks) {
       promises.push(
@@ -306,15 +306,13 @@ const recommendContractFromRanked = async (ranks: DistAccount[]) => {
                  `
           );
 
-          const currentRecommendedSmartContracts: AccountResponse[] = [];
+          const currentRecommendedSmartContracts: string[] = [];
           similarSmartContracts.records.map(async (el) => {
             const neo4jReadResult = el as unknown as Neo4JReadResult;
             const maybeAccount = neo4jReadResult._fields[0].properties;
 
             if (isAccount(maybeAccount)) {
-              currentRecommendedSmartContracts.push(
-                getAccountResponse(maybeAccount.addr)
-              );
+              currentRecommendedSmartContracts.push(maybeAccount.addr);
             } else {
               throw new Error("should not happen");
             }
@@ -326,13 +324,15 @@ const recommendContractFromRanked = async (ranks: DistAccount[]) => {
     return Promise.all(promises);
   });
 
-  return [
+  const results = [
     ...new Set(
       responses.reduce((prev: any, current: any) => {
         return [...prev, ...current];
       }, [])
     ),
-  ].slice(0, 20);
+  ];
+  console.log("check this out: ", results.slice(0, 20));
+  return results.slice(0, 20).map((el) => getAccountResponse(el));
 };
 
 const getAndRankContracts = async (
@@ -399,11 +399,9 @@ export const getSimilarContracts = async (addr: string) => {
       RETURN similar
       LIMIT 25
     `);
-  const similar = res.records.map((r) => r.get("similar").properties.addr)
+  const similar = res.records.map((r) => r.get("similar").properties.addr);
   console.log("executed query", similar);
-  const addresses = Array.from(
-    new Set(similar)
-  );
+  const addresses = Array.from(new Set(similar));
   return await batchCompare(addr, addresses);
 };
 
