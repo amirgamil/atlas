@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 const Splash = () => {
   return (
-    <div className="text-white w-1/2 mx-auto my-40 glow">
+    <div className="text-white w-1/2 mx-auto my-60 glow">
       <h1 className="text-6xl w-1/2">
         <span className="text-gradient">Atlas</span> is your map of web3.
       </h1>
