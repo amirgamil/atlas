@@ -26,7 +26,7 @@ const UserGraph = () => {
       </Head>
       <main className={`overflow-y-auto ${styles.main}`}>
         <div className="flex">
-          <div className="mx-auto mt-4">
+          <div className="rounded-md mx-auto mt-4">
             <SafeHydrate>
               <Graph user={"0xa335ade338308b8e071cf2c8f3ca5e50f6563c60"} />
             </SafeHydrate>

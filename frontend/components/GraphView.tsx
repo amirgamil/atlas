@@ -143,18 +143,18 @@ const graph = ({ user }: { user: string }) => {
   }, [user, names]);
 
   return (
-    <>
+    <div className="flex justify-center items-center w-full h-full">
       {loading && <Loader loading />}
       <div
         id={"graphcontainer"}
         ref={visRef}
         style={{
-          width: `1200px`,
-          height: `800px`,
+          width: `85%`,
+          height: `85%`,
           visibility: loading ? "hidden" : "visible",
         }}
       />
-    </>
+    </div>
   );
 };
 

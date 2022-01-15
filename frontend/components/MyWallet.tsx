@@ -57,9 +57,10 @@ export const MyWallet: React.FC<Props> = ({ address }) => {
             .filter((item, pos, self) => self.indexOf(item) == pos)
             .slice(0, 10)
             .map((el, i) => (
+              //@ts-ignore
               <Recommendation
                 key={i}
-                props={el}
+                account={el}
                 setFeedback={setAccountFeedback}
               />
             ))}

@@ -3,14 +3,10 @@ import React, { useCallback, useState } from "react";
 import styled from "styled-components";
 import { fetcher } from "../hooks/useData";
 import Loader from "./Loader";
-
-export interface Account {
-  address: string;
-  name: string;
-}
+import { Account } from "../types";
 
 interface Props {
-  props: Account;
+  account: Account;
   setFeedback: (feedback: Account, isGoodRecommendation: boolean) => void;
 }
 
@@ -44,7 +40,7 @@ const StyledButton = styled.button<{ isSelected: boolean }>`
   }
 `;
 
-export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
+export const Recommendation: React.VFC<Props> = ({ account, setFeedback }) => {
   const [isGood, setIsGood] = React.useState<boolean | undefined>(undefined);
   return (
     <div className="glass my-6 py-2 px-4 w-full flex">
@@ -52,7 +48,7 @@ export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
         <Avatar
           size={30}
           variant="marble"
-          name={props.name}
+          name={account.name}
           colors={["#3f5d88", "#0087b6", "#00b1b5", "#00d47f", "#a8eb12"]}
         />
       </div>
@@ -62,9 +58,9 @@ export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
         </h3>
         <a
           className="opacity-50 text-sm"
-          href={`https://etherscan.io/address/${props.addr}`}
+          href={`https://etherscan.io/address/${account.addr}`}
         >
-          {props.name ? props.name : props.addr}
+          {account.name ? account.name : account.addr}
         </a>
         <div className="ml-auto">
           <StyledButton
@@ -72,7 +68,7 @@ export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
             className="m-1"
             onClick={() => {
               setIsGood(true);
-              setFeedback(props, true);
+              setFeedback(account, true);
             }}
           >
             👍
@@ -82,7 +78,7 @@ export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
             className="m-1"
             onClick={() => {
               setIsGood(false);
-              setFeedback(props, false);
+              setFeedback(account, false);
             }}
           >
             👎
@@ -97,7 +93,7 @@ const fetchRelatedFn = async (addr: string) => {
   return await fetcher(`/similar-neighbors?address=${addr}`);
 };
 
-export const ExpandableRecommendation = ({ address, name }: Account) => {
+export const ExpandableRecommendation = ({ addr: address, name }: Account) => {
   const [children, setChildren] = useState<Account[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 

@@ -9,6 +9,8 @@ import {
 import { converter, getTokensForAddress } from "./util";
 import { init } from "./neo4jWrapper";
 import getName from "./names";
+import serveStatic from "serve-static";
+import path from "path";
 
 const app = express();
 //CHANGE FOR PROD
@@ -19,6 +21,7 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(serveStatic(path.join(__dirname, "../public")));
 
 app.get("/recommend", async (req, res, next) => {
   try {
@@ -32,10 +35,6 @@ app.get("/recommend", async (req, res, next) => {
     console.log(ex);
     res.status(503).send("Error occurred");
   }
-});
-
-app.get("/feedback", async (req, res, next) => {
-  // @ts-ignore
 });
 
 app.get("/hot", async (req, res) => {
