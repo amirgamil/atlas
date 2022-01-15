@@ -75,7 +75,7 @@ function wrap(name: string, opcodes: OpCode[]) {
     })
 }
 
-export async function batchCompare(main: string, contracts: Array<string>) {
+export async function batchCompare(main: string, contracts: Array<string>, threshold?: number) {
     // Returns list of addresses, sorted desc by Jaccard similarity
     const mainBytecode = await getByteCode(main);
     const byteCodes = await Promise.all(contracts.map(a => getByteCode(a)));
@@ -86,7 +86,7 @@ export async function batchCompare(main: string, contracts: Array<string>) {
     }));
 
     out.sort((a, b) => b.score - a.score);
-    return out.map(el => el.address);
+    return out.filter(el => el.score <= (threshold || 0.9)).map(el => el.address);
 }
 
 async function main() {

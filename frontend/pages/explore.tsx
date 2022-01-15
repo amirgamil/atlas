@@ -33,7 +33,7 @@ const Explore: NextPage = () => {
       </Head>
       <main className={`overflow-y-auto ${styles.main}`}>
         <div className="my-24 text-white w-1/2 m-auto">
-          <h1 className="text-gradient text-4xl">Hot Contracts</h1>
+          <h1 className="text-gradient text-4xl glow">Hot Contracts</h1>
           {
             (data.results || []).slice(0, 6).map((el: any) => (
               <Recommendation props={el} setFeedback={() => {}} />

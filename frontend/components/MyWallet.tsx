@@ -41,7 +41,7 @@ export const MyWallet: React.FC<Props> = ({ address }) => {
   return (
     <div className="text-white w-1/2 m-auto">
       <div className="my-24">
-        <h1 className="text-gradient text-4xl">My Wallet</h1>
+        <h1 className="text-gradient text-4xl glow">My Wallet</h1>
         <p>
           All of your ERC-20, ERC-721, and ERC-1155 tokens. Click on each token
           to see what you can do with it.
@@ -49,7 +49,7 @@ export const MyWallet: React.FC<Props> = ({ address }) => {
         <TokenList address={address} />
       </div>
       <div className="my-24">
-        <h1 className="text-gradient text-4xl">For you</h1>
+        <h1 className="text-gradient text-4xl glow">For you</h1>
         <p>A hand-picked selection of recommendations you might find fun.</p>
         {context.isLoadingRecommendations && <Loader loading />}
         {!context.isLoadingRecommendations &&
