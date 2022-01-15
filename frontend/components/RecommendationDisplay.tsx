@@ -5,8 +5,9 @@ import { fetcher } from "../hooks/useData";
 import Loader from "./Loader";
 
 export interface Account {
-  address: string;
-  name: string;
+  address?: string;
+  name?: string;
+  addr?: string;
 }
 
 interface Props {
@@ -76,7 +77,7 @@ export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
           className="opacity-50 text-sm"
           href={`https://etherscan.io/address/${props.addr}`}
         >
-          {props.addr !== props.name ? props.name : hardcoded(props.addr)}
+          {props.addr !== props.name ? props.name : hardcoded(props.addr!)}
         </a>
         <div className="ml-auto">
           <StyledButton
@@ -115,7 +116,7 @@ export const ExpandableRecommendation = ({ address, name }: Account) => {
 
   const fetchChildren = useCallback(async () => {
     setLoading(true);
-    const recs = await fetchRelatedFn(address);
+    const recs = await fetchRelatedFn(address!);
     setChildren(recs);
     setLoading(false);
   }, [address]);

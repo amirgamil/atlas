@@ -59,7 +59,9 @@ export const MyWallet: React.FC<Props> = ({ address }) => {
             .map((el, i) => (
               <Recommendation
                 key={i}
+                // @ts-ignore
                 props={el}
+                // @ts-ignore
                 setFeedback={setAccountFeedback}
               />
             ))}
