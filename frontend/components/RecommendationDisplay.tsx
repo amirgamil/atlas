@@ -44,8 +44,20 @@ const StyledButton = styled.button<{ isSelected: boolean }>`
   }
 `;
 
+const hardcodedNames: Record<string, string> = {
+  "0xd569d3cce55b71a8a3f3c418c329a66e5f714431": "Juicebox: Terminal V1",
+  "0xefe0fed2b728b9711030e7643e98477957df9809": "Orion",
+};
+
+const hardcoded = (addr: string) => {
+  return hardcodedNames[addr] ?? addr;
+};
+
 export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
   const [isGood, setIsGood] = React.useState<boolean | undefined>(undefined);
+
+  console.log(props);
+
   return (
     <div className="glass my-6 py-2 px-4 w-full flex">
       <div className="my-auto mr-4">
@@ -64,7 +76,7 @@ export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
           className="opacity-50 text-sm"
           href={`https://etherscan.io/address/${props.addr}`}
         >
-          {props.name ? props.name : props.addr}
+          {props.addr !== props.name ? props.name : hardcoded(props.addr)}
         </a>
         <div className="ml-auto">
           <StyledButton
@@ -119,10 +131,7 @@ export const ExpandableRecommendation = ({ address, name }: Account) => {
             colors={["#3f5d88", "#0087b6", "#00b1b5", "#00d47f", "#a8eb12"]}
           />
         </div>
-        <div
-          style={{ wordWrap: "break-word" }}
-          className="mr-3"
-        >
+        <div style={{ wordWrap: "break-word" }} className="mr-3">
           <h3 className="text-lg">
             <span className="opacity-70 text-base font-normal">{name}</span>
           </h3>
