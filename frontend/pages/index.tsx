@@ -67,12 +67,12 @@ const Home: NextPage = () => {
 
       const drawStar = (star?: Star) => {
         const x = star
-          ? star.x
+          ? star.x + Math.random()
           : Math.round(
               Math.random() * canvas.offsetWidth * window.devicePixelRatio
             );
         const y = star
-          ? star.y
+          ? star.y + Math.random()
           : Math.round(
               Math.random() * canvas.offsetHeight * window.devicePixelRatio
             );
@@ -121,27 +121,24 @@ const Home: NextPage = () => {
 
       if (!context.address) {
         draw(0);
-      } else {
-        for (let count = 0; count < 700; count++) {
-          drawStar();
-        }
-        animate(0);
       }
     }
   }, []);
 
   return (
     <div style={{ position: "relative" }} className={styles.container}>
-      <canvas
-        style={{
-          zIndex: 0,
-          position: "absolute",
-          width: "100%",
-          height: "100%",
-        }}
-        id="starfield"
-        className="absolute"
-      ></canvas>
+      {!context.address ? (
+        <canvas
+          style={{
+            zIndex: 0,
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+          }}
+          id="starfield"
+          className="absolute"
+        ></canvas>
+      ) : null}
       <Nav />
       <Head>
         <title>Atlas | Discover Web3</title>
