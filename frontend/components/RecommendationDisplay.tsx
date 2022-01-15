@@ -110,7 +110,7 @@ export const ExpandableRecommendation = ({ address, name }: Account) => {
 
   return (
     <div>
-      <div className="glass my-6 py-2 px-4 w-full flex" onClick={fetchChildren}>
+      <div className="glass my-6 py-2 px-4 w-3/5 flex" onClick={fetchChildren}>
         <div className="my-auto mr-4">
           <Avatar
             size={30}
@@ -121,16 +121,16 @@ export const ExpandableRecommendation = ({ address, name }: Account) => {
         </div>
         <div
           style={{ wordWrap: "break-word" }}
-          className="flex items-center mr-3"
+          className="mr-3"
         >
           <h3 className="text-lg">
-            <span className="opacity-50 text-base font-normal"></span>
+            <span className="opacity-70 text-base font-normal">{name}</span>
           </h3>
           <a
-            className="opacity-50 text-sm"
+            className="opacity-30 text-sm underline"
             href={`https://etherscan.io/address/${address}`}
           >
-            {name}
+            View on Etherscan
           </a>
         </div>
       </div>
