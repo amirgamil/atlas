@@ -21,7 +21,7 @@ const Nav = () => {
           height={50}
         />
         <Link href="/">
-          <h1 className="my-auto ml-4 text-3xl text-gradient glow"><a>Atlas</a></h1>
+          <h1 className="my-auto ml-4 text-3xl text-gradient glow cursor-pointer"><a>Atlas</a></h1>
         </Link>
       </div>
       <div className="ml-auto my-auto mr-16">
