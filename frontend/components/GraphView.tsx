@@ -14,6 +14,8 @@ const secondOrderQuery = (addr: string) => {
   RETURN acc, edge, child, edge2, second`; //edge2, second;
 };
 
+// 0xa335ade338308b8e071cf2c8f3ca5e50f6563c60 is a good user for testing
+
 export const getContractNameScrape = async (addr: string) => {
   // Can only run 5/sec
   if (!utils.isAddress(addr)) return;
