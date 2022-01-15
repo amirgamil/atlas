@@ -110,7 +110,7 @@ export const ExpandableRecommendation = ({ address, name }: Account) => {
 
   return (
     <div>
-      <div className="glass my-6 py-2 px-4 w-3/5 flex" onClick={fetchChildren}>
+      <div className="glass my-6 py-2 px-4 w-full flex" onClick={fetchChildren}>
         <div className="my-auto mr-4">
           <Avatar
             size={30}
@@ -119,7 +119,10 @@ export const ExpandableRecommendation = ({ address, name }: Account) => {
             colors={["#3f5d88", "#0087b6", "#00b1b5", "#00d47f", "#a8eb12"]}
           />
         </div>
-        <div className="flex items-center w-full mr-3">
+        <div
+          style={{ wordWrap: "break-word" }}
+          className="flex items-center mr-3"
+        >
           <h3 className="text-lg">
             <span className="opacity-50 text-base font-normal"></span>
           </h3>
