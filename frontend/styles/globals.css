@@ -71,7 +71,6 @@ button,
   border-radius: 12px;
   transition: background 1s ease;
   background-size: 100% 8vw;
-  z-index: 100;
 }
 
 button:hover,

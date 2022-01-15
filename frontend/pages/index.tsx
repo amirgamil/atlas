@@ -27,7 +27,9 @@ const Home: NextPage = () => {
       //scale the canvas
       canvas.setAttribute("height", style_height * window.devicePixelRatio);
       canvas.setAttribute("width", style_width * window.devicePixelRatio);
-      for (var i = 0; i < 1000; i++) {
+      let i = 0;
+      let id: number = 0;
+      const drawStar = () => {
         const x = Math.round(
           Math.random() * canvas.offsetWidth * window.devicePixelRatio
         );
@@ -42,28 +44,38 @@ const Home: NextPage = () => {
         ctx.fill();
         ctx.stroke();
         ctx.closePath();
-        // ctx.fillRect(x, y, 3 * Math.random(), 3 * Math.random());
-        if (i % 10 === 0) {
-          points.push({ x, y });
+        i += 1;
+      };
+      const draw = (time: number) => {
+        if (i < 1000) {
+          drawStar();
+          window.requestAnimationFrame(draw);
+        } else {
+          window.cancelAnimationFrame(id);
+        }
+      };
+      if (!context.address) {
+        draw(0);
+      } else {
+        for (let count = 0; count < 1000; count++) {
+          drawStar();
         }
       }
     }
-  });
+  }, []);
 
   return (
     <div style={{ position: "relative" }} className={styles.container}>
-      {!context.address ? (
-        <canvas
-          style={{
-            zIndex: 0,
-            position: "absolute",
-            width: "100%",
-            height: "100%",
-          }}
-          id="starfield"
-          className="absolute"
-        ></canvas>
-      ) : null}
+      <canvas
+        style={{
+          zIndex: 0,
+          position: "absolute",
+          width: "100%",
+          height: "100%",
+        }}
+        id="starfield"
+        className="absolute"
+      ></canvas>
       <Nav />
       <Head>
         <title>Atlas | Discover Web3</title>
