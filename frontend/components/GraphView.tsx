@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Neovis, { NEOVIS_ADVANCED_CONFIG, NeoVisEvents } from "neovis.js";
 import { utils } from "ethers";
+import Loader from "./Loader";
 
 const NEO4JURI = "neo4j://143.244.183.189";
 const NEO4JUSER = "neo4j";
@@ -51,6 +52,8 @@ const graph = ({ user }: { user: string }) => {
   // TODO: don't use any
   const visRef: any = useRef();
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const config = {
       containerId: visRef.current.id,
@@ -97,6 +100,7 @@ const graph = ({ user }: { user: string }) => {
     const vis = new Neovis(config);
     vis.render();
     vis.registerOnEvent(NeoVisEvents.CompletionEvent, () => {
+      setLoading(false);
       vis.network!.on("click", (nodes) => {
         try {
           const addr = vis.nodes._data.get(nodes.nodes[0]).raw.properties.addr;
@@ -110,14 +114,17 @@ const graph = ({ user }: { user: string }) => {
   }, [user]);
 
   return (
-    <div
-      id={"graphcontainer"}
-      ref={visRef}
-      style={{
-        width: `1200px`,
-        height: `800px`,
-      }}
-    />
+    <>
+      {loading && <Loader loading />}
+      <div
+        id={"graphcontainer"}
+        ref={visRef}
+        style={{
+          width: `1200px`,
+          height: `800px`,
+        }}
+      />
+    </>
   );
 };
 
