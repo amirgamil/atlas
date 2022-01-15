@@ -19,16 +19,29 @@ a {
   box-sizing: border-box;
 }
 
-h1, h2, h3, p, a {
+h1,
+h2,
+h3,
+p,
+a {
   font-family: Poppins;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   font-weight: 700;
 }
 
 .text-gradient {
-  background: linear-gradient(to right top, #3f5d88, #0087b6, #00b1b5, #00d47f, #a8eb12);
+  background: linear-gradient(
+    to right top,
+    #3f5d88,
+    #0087b6,
+    #00b1b5,
+    #00d47f,
+    #a8eb12
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   transition: background 1s ease;
@@ -43,20 +56,31 @@ h1, h2, h3 {
   text-shadow: 0 0 40px rgb(192 219 255 / 40%), 0 0 6px rgb(65 120 255 / 2%);
 }
 
-button, .button {
+button,
+.button {
   font-weight: 700;
-  background-image: linear-gradient(to right top, #3f5d88, #0087b6, #00b1b5, #00d47f, #a8eb12);
+  background-image: linear-gradient(
+    to right top,
+    #3f5d88,
+    #0087b6,
+    #00b1b5,
+    #00d47f,
+    #a8eb12
+  );
   padding: 0.5em 1.2em;
   border-radius: 12px;
   transition: background 1s ease;
   background-size: 100% 8vw;
+  z-index: 100;
 }
 
-button:hover, .button:hover {
+button:hover,
+.button:hover {
   background-position-y: 100%;
 }
 
-button.secondary, .button {
+button.secondary,
+.button {
   background-image: none;
   box-sizing: border-box;
   position: relative;
@@ -64,15 +88,16 @@ button.secondary, .button {
   transition: border 1s ease;
 }
 
-button.secondary:hover, .button:hover {
+button.secondary:hover,
+.button:hover {
   border: 2px solid #00d47f;
 }
 
 .glass {
-  background: rgba( 255, 255, 255, 0.05 );
-  box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
-  backdrop-filter: blur( 4.5px );
-  -webkit-backdrop-filter: blur( 4.5px );
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(4.5px);
+  -webkit-backdrop-filter: blur(4.5px);
   border-radius: 10px;
-  border: 1px solid rgba( 255, 255, 255, 0.18 );
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
