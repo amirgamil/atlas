@@ -46,7 +46,7 @@ function Token(props: IToken) {
       >
         <div className="my-auto mr-4">
           {props.metadata.logo ? (
-            <Image
+            <img
               className={isNFT ? "rounded-md" : "rounded-full"}
               src={props.metadata.logo}
               width={40}
@@ -79,7 +79,7 @@ function Token(props: IToken) {
         ) : (
           <div>
             <h3 className="text-lg">
-              {props.balance.toFixed(2)} {props.symbol}{" "}
+              {props.balance ? props.balance.toFixed(2) : 0} {props.symbol}{" "}
               <span className="opacity-50 text-base font-normal">
                 ({props.type})
               </span>
