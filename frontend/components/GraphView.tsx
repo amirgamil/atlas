@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import Neovis, { NEOVIS_ADVANCED_CONFIG, NeoVisEvents } from "neovis.js";
 import { utils } from "ethers";
 import Loader from "./Loader";
+import axios from "axios";
+import useDebounce from "../hooks/useDebounce";
 
 const NEO4JURI = "neo4j://143.244.183.189";
 const NEO4JUSER = "neo4j";
@@ -53,8 +55,30 @@ const graph = ({ user }: { user: string }) => {
   const visRef: any = useRef();
 
   const [loading, setLoading] = useState(true);
+  const [addrs, setAddrs] = useState<Array<any>>([]);
+  const [names, setNames] = useState<any>({});
+  const debouncedAddrs = useDebounce(addrs, 5000);
+
+  const getNamesForAddrs = async () => {
+    const names = await axios.post("http://localhost:3001/names", {
+      addresses: addrs,
+    });
+    return names.data.result;
+  };
 
   useEffect(() => {
+    const f = async () => {
+      const nameResponse = await getNamesForAddrs();
+      console.log("nr", nameResponse);
+      setNames(nameResponse);
+    };
+
+    f();
+  }, [debouncedAddrs]);
+
+  useEffect(() => {
+    console.log("names", names);
+
     const config = {
       containerId: visRef.current.id,
       neo4j: {
@@ -78,7 +102,10 @@ const graph = ({ user }: { user: string }) => {
             function: {
               color: (node: any) => "red",
               title: async (node: any) => {
-                return node.properties.addr;
+                if (Object.keys(names).length === 0)
+                  setAddrs((names) => [...names, node.properties.addr]);
+                const n = names[node.properties.addr] ?? node.properties.addr;
+                return n;
               },
             },
           },
@@ -100,7 +127,9 @@ const graph = ({ user }: { user: string }) => {
     const vis = new Neovis(config);
     vis.render();
     vis.registerOnEvent(NeoVisEvents.CompletionEvent, () => {
-      setLoading(false);
+      if (Object.keys(names).length !== 0) {
+        setLoading(false);
+      }
       vis.network!.on("click", (nodes) => {
         try {
           const addr = vis.nodes._data.get(nodes.nodes[0]).raw.properties.addr;
@@ -111,7 +140,7 @@ const graph = ({ user }: { user: string }) => {
       });
     });
     //vis.stabilize();
-  }, [user]);
+  }, [user, names]);
 
   return (
     <>
@@ -122,6 +151,7 @@ const graph = ({ user }: { user: string }) => {
         style={{
           width: `1200px`,
           height: `800px`,
+          visibility: loading ? "hidden" : "visible",
         }}
       />
     </>

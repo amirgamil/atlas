@@ -87,6 +87,23 @@ app.post("/recommendFeedback", async (req, res, next) => {
   }
 });
 
+app.post("/names", async (req, res) => {
+  try {
+    console.log(req.body);
+    const addresses = req.body.addresses;
+    console.log("Addresses", addresses);
+    const names = await Promise.all(addresses.map((a: string) => getName(a)));
+    let map: Record<string, any> = {};
+    addresses.forEach((a: string, i: number) => {
+      map[a] = names[i];
+    });
+    res.send({ result: map });
+  } catch (ex: unknown) {
+    console.log(ex);
+    res.status(503).send("Error");
+  }
+});
+
 //make sure that the server is running
 app.listen(3001, () => {
   init();
