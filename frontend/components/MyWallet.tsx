@@ -37,7 +37,6 @@ export const MyWallet: React.FC<Props> = ({ address }) => {
     setFeedback(feedbackCopy);
   };
 
-  console.log(context.recommendations);
   return (
     <div className="text-white w-1/2 m-auto">
       <div className="my-24">
