@@ -336,7 +336,9 @@ const recommendContractFromRanked = async (ranks: DistAccount[]) => {
     ),
   ];
   console.log("check this out: ", results.slice(0, 20));
-  return results.slice(0, 20).map((el) => getAccountResponse(el));
+  return Promise.all(
+    results.slice(0, 20).map(async (el) => await getAccountResponse(el))
+  );
 };
 
 const getAndRankContracts = async (
@@ -486,5 +488,7 @@ export const submitFeedback = async (
   (await Promise.all(promises)).map((el) =>
     el.forEach((ex) => resultsSet.add(ex))
   );
-  return [...resultsSet].slice(0, 20).map((el) => getAccountResponse(el));
+  return await Promise.all(
+    [...resultsSet].slice(0, 20).map(async (el) => await getAccountResponse(el))
+  );
 };

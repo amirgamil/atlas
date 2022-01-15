@@ -33,6 +33,20 @@ const ERC20_PARTIAL_ABI = [
     stateMutability: "view",
     type: "function",
   },
+  {
+    constant: true,
+    inputs: [],
+    name: "name",
+    outputs: [
+      {
+        name: "",
+        type: "string",
+      },
+    ],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
 ];
 
 export const getTokens = async (addr: string) => {
@@ -73,6 +87,16 @@ export const resolveERC20Symbol = async (addr: string) => {
 
   const contract = new ethers.Contract(addr, ERC20_PARTIAL_ABI, provider);
   return await contract.symbol();
+};
+
+export const resolveERC20Name = async (addr: string) => {
+  const provider = new ethers.providers.AlchemyProvider(
+    1,
+    process.env.ALCHEMY_API_KEY
+  );
+
+  const contract = new ethers.Contract(addr, ERC20_PARTIAL_ABI, provider);
+  return await contract.name();
 };
 
 export const resolvePoolName = async (addr: string) => {
