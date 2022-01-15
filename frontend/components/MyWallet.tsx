@@ -53,7 +53,8 @@ export const MyWallet: React.FC<Props> = ({ address }) => {
         {context.isLoadingRecommendations && <Loader loading />}
         {context.recommendations &&
           context.recommendations
-            .filter((item, pos, self) => self.indexOf(item) == pos)
+            .map(t => ({...t, name: t.name || t.addr}))
+            .filter((v,i,a)=>a.findIndex(t => (t.name === v.name)) === i)
             .slice(0, 6)
             .map((el, i) => (
               <Recommendation
