@@ -113,7 +113,7 @@ export const AppContextProvider = (props: any) => {
   };
 
   const attemptLogin = async () => {
-    if (
+    /* if (
       window &&
       window.localStorage &&
       window.localStorage.getItem("WEB3_CONNECT_CACHED_PROVIDER") &&
@@ -125,7 +125,7 @@ export const AppContextProvider = (props: any) => {
       });
       setSigner(provider);
       setAddress(addresses[0]);
-    }
+    } */
   };
 
   return (

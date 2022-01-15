@@ -389,7 +389,7 @@ export const getSimilarContracts = async (addr: string) => {
       params: [
         {
           fromBlock: "0x0",
-          fromAddress: addr,
+          toAddress: addr,
           category: ["external", "internal", "token"],
           maxCount: "0xa",
         },
@@ -401,7 +401,7 @@ export const getSimilarContracts = async (addr: string) => {
     console.log("wrote new transactions in db for similar");
   }
   res = await executeReadQuery(`
-      MATCH (contract:Contract {addr: '${addr}'})-[:To]->(user:User)-[:To]-(similar:Contract)
+      MATCH (contract:Contract {addr: '${addr}'})<-[:To]-(user:User)-[:To]-(similar:Contract)
       RETURN similar
       LIMIT 25
     `);
