@@ -9,6 +9,8 @@ import MyWallet from "../components/MyWallet";
 const Home: NextPage = () => {
   const context = useAppContext();
 
+  context.attemptLogin();
+
   return (
     <div className={styles.container}>
       <Nav />

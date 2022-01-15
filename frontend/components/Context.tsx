@@ -8,6 +8,7 @@ import axios from "axios";
 interface Context {
   openModal: () => void;
   signOut: () => void;
+  attemptLogin: () => void;
   signer?: providers.JsonRpcSigner;
   address?: string;
   recommendations: Account[];
@@ -22,6 +23,7 @@ interface Context {
 export const AppContext = React.createContext<Context>({
   openModal: () => {},
   signOut: () => {},
+  attemptLogin: () => {},
   signer: undefined,
   address: "",
   recommendations: [],
@@ -108,6 +110,21 @@ export const AppContextProvider = (props: any) => {
   const signOut = () => {
     setSigner(undefined);
     setAddress(undefined);
+    localStorage.setItem("WEB3_CONNECT_CACHED_PROVIDER", "");
+  };
+
+  const attemptLogin = async () => {
+    if (
+      localStorage.getItem("WEB3_CONNECT_CACHED_PROVIDER") &&
+      typeof window.ethereum !== "undefined"
+    ) {
+      const provider = window.ethereum;
+      const addresses = await provider.request({
+        method: "eth_requestAccounts",
+      });
+      setSigner(provider);
+      setAddress(addresses[0]);
+    }
   };
 
   return (
@@ -115,6 +132,7 @@ export const AppContextProvider = (props: any) => {
       value={{
         openModal,
         signOut,
+        attemptLogin,
         signer,
         address,
         recommendations,
