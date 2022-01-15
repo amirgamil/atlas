@@ -19,7 +19,7 @@ const Nav = () => {
       <div className="text-2xl my-auto ml-16 flex">
         <Image src="/logo.png" alt="Logo" width={50} height={50} />
         <Link href="/">
-          <h1 className="my-auto ml-4 text-3xl text-gradient glow">
+          <h1 className="my-auto ml-4 text-3xl text-gradient glow cursor-pointer">
             <a>Atlas</a>
           </h1>
         </Link>

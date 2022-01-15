@@ -90,7 +90,11 @@ async function getTransactionsWithPagination(
   );
 
   //FIXME: I don't understand why this sometimes happens, maybe it's an Alchemy thing
-  if (!transactions.data.result) {
+  if (
+    !transactions.data.result ||
+    !transactions.data.result.transfers ||
+    transactions.data.result.transfers.length === 0
+  ) {
     return [];
   }
 
@@ -332,7 +336,9 @@ const recommendContractFromRanked = async (ranks: DistAccount[]) => {
     ),
   ];
   console.log("check this out: ", results.slice(0, 20));
-  return results.slice(0, 20).map((el) => getAccountResponse(el));
+  return Promise.all(
+    results.slice(0, 20).map(async (el) => await getAccountResponse(el))
+  );
 };
 
 const getAndRankContracts = async (
@@ -372,9 +378,10 @@ const getAndRankContracts = async (
 
 export const getSimilarContracts = async (addr: string) => {
   let res = await executeReadQuery(`
-      MATCH (contract:Contract {addr: '${addr}'})-[:To]->(user:User)
-      RETURN contract
-      LIMIT 3
+      MATCH (contract:Contract {addr: '${addr}'})-[:To]-(user:User)-[:To]-(similar:Contract)
+      WHERE NOT contract = similar
+      RETURN similar
+      LIMIT 1
     `);
   if (res.records.length === 0) {
     const payload: Payload = {
@@ -383,7 +390,7 @@ export const getSimilarContracts = async (addr: string) => {
       params: [
         {
           fromBlock: "0x0",
-          fromAddress: addr,
+          contractAddress: addr,
           category: ["external", "internal", "token"],
           maxCount: "0xa",
         },
@@ -395,7 +402,8 @@ export const getSimilarContracts = async (addr: string) => {
     console.log("wrote new transactions in db for similar");
   }
   res = await executeReadQuery(`
-      MATCH (contract:Contract {addr: '${addr}'})-[:To]->(user:User)-[:To]-(similar:Contract)
+      MATCH (contract:Contract {addr: '${addr}'})-[:To]-(user:User)-[:To]-(similar:Contract)
+      WHERE NOT contract = similar
       RETURN similar
       LIMIT 25
     `);
@@ -482,5 +490,7 @@ export const submitFeedback = async (
   (await Promise.all(promises)).map((el) =>
     el.forEach((ex) => resultsSet.add(ex))
   );
-  return [...resultsSet].slice(0, 20).map((el) => getAccountResponse(el));
+  return await Promise.all(
+    [...resultsSet].slice(0, 20).map(async (el) => await getAccountResponse(el))
+  );
 };

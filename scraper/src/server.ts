@@ -55,10 +55,8 @@ app.get("/similar-neighbors", async (req, res) => {
     const address = req.query.address as string;
     const similar = await getSimilarContracts(address);
     //@ts-ignore
-    const out = similar.map((r) => ({
-      address: r,
-      name: getName(r)
-    }));
+    const out = similar.map((r) => ({ ...r, name: getName(r.address) }));
+    console.log(out);
     res.json(out.slice(0, 4));
   } catch (err: any) {
     console.log(err);

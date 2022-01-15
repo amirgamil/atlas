@@ -4,6 +4,8 @@ export interface ParamData {
     pageKey?: string;
     toBlock?: string;
     fromAddress?: string;
+    contractAddress?: string;
+    toAddress?: string;
     maxCount?: string;
 }
 
