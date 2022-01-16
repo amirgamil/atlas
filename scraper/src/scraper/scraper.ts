@@ -4,9 +4,9 @@ import fs from "fs";
 import { delay } from "../util";
 import { createMultipleTx, init } from "../neo4jWrapper/index";
 import { Payload, Transfer, Response } from "./types";
-// dotenv.config({
-//   path: "./src/.env",
-// });
+dotenv.config({
+  path: "./src/.env",
+});
 
 enum AccountType {
   EOA,

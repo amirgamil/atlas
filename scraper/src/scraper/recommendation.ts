@@ -10,12 +10,13 @@ import { Payload } from "./types";
 import { converter } from "../util";
 import Bottleneck from "bottleneck";
 import { getAccountResponse } from "../names";
+import dotenv from "dotenv";
 import { batchCompare } from "../modularity/index";
 import type { Record as Neo4jRecord } from "neo4j-driver";
 
-// dotenv.config({
-//   path: "./src/.env",
-// });
+dotenv.config({
+  path: "./src/.env",
+});
 console.log(process.env.ETHERSCAN_KEY);
 interface DistAccount {
   distance: number;

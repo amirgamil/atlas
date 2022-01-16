@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import neo4j from "neo4j-driver";
-// dotenv.config({ path: "src/.env" });
+dotenv.config({ path: "src/.env" });
 
 // const config: Config = {
 //     logging: {

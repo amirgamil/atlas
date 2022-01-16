@@ -2,9 +2,9 @@ import { executeReadQuery } from "../neo4jWrapper";
 import dotenv from "dotenv";
 import { getContractName, delay } from "../util";
 import fs from "fs";
-// dotenv.config({
-//   path: "./src/.env",
-// });
+dotenv.config({
+  path: "./src/.env",
+});
 
 const main = async () => {
   const res = await executeReadQuery("MATCH (n:Contract) RETURN n.addr");

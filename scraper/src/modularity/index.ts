@@ -2,9 +2,9 @@ import axios from "axios";
 import { parseCode } from "./disassemble_bytecode";
 import dotenv from "dotenv";
 import { OpCode } from "./codemap";
-// dotenv.config({
-//     path: "./src/.env",
-// });
+dotenv.config({
+  path: "./src/.env",
+});
 
 export async function getByteCode(address: string): Promise<OpCode[]> {
   const body = {
