@@ -12,7 +12,7 @@ export interface Account {
 
 interface Props {
   account: Account;
-  setFeedback: (feedback: Account, isGoodRecommendation: boolean) => void;
+  setFeedback: (acc: Account, isGoodRecommendation: boolean) => void;
 }
 
 const StyledButton = styled.button<{ isSelected: boolean }>`
@@ -57,8 +57,6 @@ const hardcoded = (addr: string) => {
 export const Recommendation: React.VFC<Props> = ({ account, setFeedback }) => {
   const [isGood, setIsGood] = React.useState<boolean | undefined>(undefined);
 
-  console.log(account);
-
   return (
     <div className="glass my-6 py-2 px-4 w-full flex">
       <div className="my-auto mr-4">
@@ -70,16 +68,11 @@ export const Recommendation: React.VFC<Props> = ({ account, setFeedback }) => {
         />
       </div>
       <div className="flex items-center w-full mr-3">
-        <h3 className="text-lg">
-          <span className="opacity-50 text-base font-normal"></span>
-        </h3>
         <a
           className="opacity-50 text-sm"
           href={`https://etherscan.io/address/${account.addr}`}
         >
-          {account.addr !== account.name
-            ? account.name
-            : hardcoded(account.addr!)}
+          {account.addr !== account.name ? account.name : hardcoded(account.addr!)}
         </a>
         <div className="ml-auto">
           <StyledButton
@@ -112,7 +105,7 @@ const fetchRelatedFn = async (addr: string) => {
   return await fetcher(`/similar-neighbors?address=${addr}`);
 };
 
-export const ExpandableRecommendation = ({ addr: address, name }: Account) => {
+export const ExpandableRecommendation = ({ address, name }: Account) => {
   const [children, setChildren] = useState<Account[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -138,12 +131,22 @@ export const ExpandableRecommendation = ({ addr: address, name }: Account) => {
           <h3 className="text-lg">
             <span className="opacity-70 text-base font-normal">{name}</span>
           </h3>
-          <a
-            className="opacity-30 text-sm underline"
-            href={`https://etherscan.io/address/${address}`}
-          >
-            View on Etherscan
-          </a>
+          <p className="opacity-30 text-sm">
+            View on{' '}
+            <a
+              className="text-sm underline"
+              href={`https://etherscan.io/address/${address}`}
+            >
+               Etherscan
+            </a>
+            {' '}or{' '}
+            <a
+              className="text-sm underline"
+              href={`/graph?address=${address}`}
+            >
+              the graph
+            </a>
+          </p>
         </div>
       </div>
       <div className="ml-8">

@@ -13,15 +13,12 @@ const getName = async (addr: string): Promise<string> => {
       // Not all contracts are labeled w a name
       name += `: ${obj.name}`;
     }
-    console.log(name);
     return name;
   } catch {
     try {
       const name = await resolveERC20Name(addr);
-      console.log(name);
       return name;
     } catch {
-      console.log(addr);
       return addr;
     }
   }

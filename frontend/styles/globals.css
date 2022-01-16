@@ -132,3 +132,7 @@ button.secondary:hover,
   transform: translate3d(0, 0, -500px);
   backface-visibility: hidden;
 }
+
+canvas {
+  border-radius: 5px;
+}
