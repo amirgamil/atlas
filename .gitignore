@@ -4,3 +4,4 @@ node_modules
 *.env
 
 scraper/src/cache.json
+scraper/dist/

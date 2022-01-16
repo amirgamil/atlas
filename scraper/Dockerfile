@@ -8,4 +8,6 @@ RUN npm install --production
 
 COPY dist/ /app/build
 
-ENTRYPOINT ["node", "/app/dist/src/server.js"]
+EXPOSE 3001
+
+ENTRYPOINT ["node", "build/src/server.js"]

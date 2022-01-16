@@ -21,7 +21,6 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(serveStatic(path.join(__dirname, "../public")));
 
 app.get("/recommend", async (req, res, next) => {
   try {
@@ -41,10 +40,12 @@ app.get("/hot", async (req, res) => {
   try {
     console.log("getting results");
     const results = await getHotContracts(10);
-    const out = await Promise.all(results.map(async (r) => {
-      const name = await getName(r.addr)
-      return ({ address: r.addr, name })
-    }));
+    const out = await Promise.all(
+      results.map(async (r) => {
+        const name = await getName(r.addr);
+        return { address: r.addr, name };
+      })
+    );
     res.json({ results: out });
   } catch (err: any) {
     console.log(err);
@@ -56,10 +57,12 @@ app.get("/similar-neighbors", async (req, res) => {
   try {
     const address = req.query.address as string;
     const similar = await getSimilarContracts(address);
-    const out = await Promise.all(similar.map(async (r) => {
-      const name = await getName(r)
-      return ({ address: r, name })
-    }));
+    const out = await Promise.all(
+      similar.map(async (r) => {
+        const name = await getName(r);
+        return { address: r, name };
+      })
+    );
     res.json(out.slice(0, 4));
   } catch (err: any) {
     console.log(err);
