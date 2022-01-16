@@ -3,9 +3,9 @@ import UhOh from "./UhOh";
 import Loader from "./Loader";
 import Token, { IToken } from "./WalletTokenDisplay";
 import { useAppContext } from "./Context";
-import { Recommendation } from "./RecommendationDisplay";
+import {Account, Recommendation} from "./RecommendationDisplay";
 import * as React from "react";
-import { Account, FeedbackDetails } from "../types";
+import {FeedbackDetails} from "../types";
 
 function TokenList({ address }: { address: string }) {
   const { data, error } = useData(`/tokens?address=${address}`);
@@ -25,7 +25,7 @@ interface Props {
   address: string;
 }
 
-export const MyWallet: React.FC<Props> = ({ address }) => {
+const MyWallet: React.FC<Props> = ({ address }) => {
   const [feedback, setFeedback] = React.useState<
     Record<string, FeedbackDetails>
   >({});
@@ -33,7 +33,7 @@ export const MyWallet: React.FC<Props> = ({ address }) => {
 
   const setAccountFeedback = (acc: Account, isGoodRecommendation: boolean) => {
     const feedbackCopy = { ...feedback };
-    feedbackCopy[acc.addr] = { name: acc.name, isGoodRecommendation };
+    feedbackCopy[acc.address || ""] = { name: acc.name, isGoodRecommendation };
     setFeedback(feedbackCopy);
   };
 
@@ -57,16 +57,12 @@ export const MyWallet: React.FC<Props> = ({ address }) => {
             .filter((item, pos, self) => self.indexOf(item) == pos)
             .slice(0, 10)
             .map((el, i) => (
-              //@ts-ignore
               <Recommendation
                 key={i}
-                // @ts-ignore
-                props={el}
-                // @ts-ignore
                 setFeedback={setAccountFeedback}
-              />
+                account={el}/>
             ))}
-        <div className="flex w-full items-center justify-center">
+        <div className="flex w-full items-center justify-center mt-8">
           <button
             onClick={async () => {
               if (context.address) {
@@ -82,4 +78,4 @@ export const MyWallet: React.FC<Props> = ({ address }) => {
   );
 };
 
-export default MyWallet;
+export default MyWallet

@@ -12,7 +12,7 @@ export interface Account {
 
 interface Props {
   account: Account;
-  setFeedback: (feedback: Account, isGoodRecommendation: boolean) => void;
+  setFeedback: (acc: Account, isGoodRecommendation: boolean) => void;
 }
 
 const StyledButton = styled.button<{ isSelected: boolean }>`
@@ -54,10 +54,8 @@ const hardcoded = (addr: string) => {
   return hardcodedNames[addr] ?? addr;
 };
 
-export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
+export const Recommendation: React.VFC<Props> = ({ account, setFeedback }) => {
   const [isGood, setIsGood] = React.useState<boolean | undefined>(undefined);
-
-  console.log(props);
 
   return (
     <div className="glass my-6 py-2 px-4 w-full flex">
@@ -70,14 +68,11 @@ export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
         />
       </div>
       <div className="flex items-center w-full mr-3">
-        <h3 className="text-lg">
-          <span className="opacity-50 text-base font-normal"></span>
-        </h3>
         <a
           className="opacity-50 text-sm"
           href={`https://etherscan.io/address/${account.addr}`}
         >
-          {props.addr !== props.name ? props.name : hardcoded(props.addr!)}
+          {account.addr !== account.name ? account.name : hardcoded(account.addr!)}
         </a>
         <div className="ml-auto">
           <StyledButton
@@ -110,7 +105,7 @@ const fetchRelatedFn = async (addr: string) => {
   return await fetcher(`/similar-neighbors?address=${addr}`);
 };
 
-export const ExpandableRecommendation = ({ addr: address, name }: Account) => {
+export const ExpandableRecommendation = ({ address, name }: Account) => {
   const [children, setChildren] = useState<Account[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
