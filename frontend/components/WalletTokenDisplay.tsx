@@ -3,10 +3,7 @@ import Avatar from "boring-avatars";
 import { useCallback, useState } from "react";
 import Loader from "./Loader";
 import { fetcher } from "../hooks/useData";
-import {
-  ExpandableRecommendation,
-  Recommendation,
-} from "./RecommendationDisplay";
+import { ExpandableRecommendation } from "./RecommendationDisplay";
 import { Account } from "../types";
 
 export interface IToken {
