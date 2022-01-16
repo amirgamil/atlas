@@ -29,16 +29,37 @@ const Home: NextPage = () => {
   return (
     <div style={{ position: "relative" }} className={styles.container}>
       {!context.address && (
-        <div id="effectsLayer">
+        <div
+          id="effectsLayer"
+          style={{
+            overflow: "hidden",
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+          }}
+        >
           <div id="stars">
-            {Array(1000).fill(0).map(() => {
-              const s = 0.5 + Math.random();
-              const curR = 300 + (Math.random() * 1800);
-              return <div className="star" style={{
-                transformOrigin: `0 0 ${curR}px`,
-                transform: `translate3d(0,0,-${curR}px) rotateY(${Math.random() * 360}deg) rotateX(${Math.random() * -50}deg) scale(${s}, ${s})`,
-              }}/>
-            })}
+            {Array(1000)
+              .fill(0)
+              .map(() => {
+                const s = 0.5 + Math.random();
+                const curR = 300 + Math.random() * 1800;
+                return (
+                  <div
+                    className="star"
+                    style={{
+                      transformOrigin: `0 0 ${curR}px`,
+                      transform: `translate3d(0,0,-${curR}px) rotateY(${
+                        Math.random() * 360
+                      }deg) rotateX(${
+                        Math.random() * -50
+                      }deg) scale(${s}, ${s})`,
+                    }}
+                  />
+                );
+              })}
           </div>
         </div>
       )}
