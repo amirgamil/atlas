@@ -27,11 +27,11 @@ const UserGraph = () => {
         <div className="flex">
           <div className="mx-auto mt-20 w-1/2 h-full">
             <h1 className="text-gradient text-4xl glow">The Graph</h1>
-            <SafeHydrate>
-              <Graph />
-            </SafeHydrate>
           </div>
         </div>
+        <SafeHydrate>
+          <Graph />
+        </SafeHydrate>
       </main>
     </div>
   );

@@ -134,9 +134,5 @@ button.secondary:hover,
 }
 
 canvas {
-  border: 1px solid #ffffff22;
   border-radius: 5px;
-  margin-top: 4rem;
-  width: 100% !important;
-  height: 100% !important;
 }

@@ -10,9 +10,10 @@ import { Payload } from "./types";
 import dotenv from "dotenv";
 import { converter } from "../util";
 import Bottleneck from "bottleneck";
-import { getAccountResponse } from "../names";
+import getName, { getAccountResponse } from "../names";
 import { batchCompare } from "../modularity/index";
 import type { Record as Neo4jRecord } from "neo4j-driver";
+import {Record} from "neo4j-driver";
 
 dotenv.config({
   path: "./src/.env",
@@ -376,6 +377,108 @@ const getAndRankContracts = async (
   return recommended;
 };
 
+export const getLocalGraph = async (addr: string) => {
+  let res = await executeReadQuery(`
+    MATCH (user:User { addr: '${addr.toLowerCase()}' })-[r1:To]-(c1)-[r2:To]-(c2)
+    RETURN *
+    ORDER BY r2.count DESC
+    LIMIT 1
+  `);
+  if (res.records.length === 0) {
+    const payload1: Payload = {
+      jsonrpc: "2.0",
+      method: "alchemy_getAssetTransfers",
+      params: [
+        {
+          fromBlock: "0x0",
+          fromAddress: addr,
+          category: ["external", "internal", "token"],
+          maxCount: "0x14",
+        },
+      ],
+    };
+    const payload2: Payload = {
+      jsonrpc: "2.0",
+      method: "alchemy_getAssetTransfers",
+      params: [
+        {
+          fromBlock: "0x0",
+          toAddress: addr,
+          category: ["external", "internal", "token"],
+          maxCount: "0x14",
+        },
+      ],
+    };
+    const [r1, r2] = await Promise.all([getTransactionsWithPagination(payload1), getTransactionsWithPagination(payload2)]);
+    const results = [...r1, ...r2]
+    console.log("fetched transactions for user: ", results);
+    await createMultipleTx(results);
+  }
+  res = await executeReadQuery(`
+      MATCH (user:User { addr: '${addr.toLowerCase()}' })-[r1:To]-(c1)-[r2:To]-(c2)
+      RETURN *
+      ORDER BY r2.count DESC
+      LIMIT 300
+  `);
+  const allRecords = res.records.map(r => {
+    return ({
+      user: r.get("user").properties.addr,
+      r1: {
+        ...r.get("r1").properties,
+        count: r.get("r1").properties.count.low,
+        from: addr.toLowerCase(),
+        to: r.get("c1").properties.addr,
+      },
+      r2: {
+        ...r.get("r2").properties,
+        count: r.get("r2").properties.count.low,
+        from: r.get("c1").properties.addr,
+        to: r.get("c2").properties.addr,
+      },
+      c1: {
+        type: r.get("c1").labels[0],
+        addr: r.get("c1").properties.addr as string
+      },
+      c2: {
+        type: r.get("c2").labels[0],
+        addr: r.get("c2").properties.addr as string
+      }
+    })
+  })
+
+  const types: { [key: string]: string }  = allRecords.reduce((total, cur) => {
+    // @ts-ignore
+    total[cur.c1.addr] = cur.c1.type
+    // @ts-ignore
+    total[cur.c2.addr] = cur.c2.type
+    return total
+  }, {})
+
+  const allNodes = [...new Set(allRecords.flatMap(r => [r.user, r.c1.addr, r.c2.addr]))]
+  const allEdges = [...new Set(allRecords.flatMap(r => [r.r1, r.r2]))]
+  const namedNodes = await Promise.all(allNodes.map(async (node: string) => {
+    const name = await getName(node)
+    return {
+      id:  node,
+      type: types[node],
+      label: name,
+    }
+  }))
+
+  return {
+    nodes: namedNodes,
+    edges: allEdges.map(r => ({
+      asset: r.asset,
+      value: r.value,
+      count: r.count,
+      hash: r.hash,
+      from: r.from,
+      to: r.to,
+    }))
+  }
+
+}
+
 export const getSimilarContracts = async (addr: string) => {
   let res = await executeReadQuery(`
       MATCH (contract:Contract {addr: '${addr}'})-[:To]-(user:User)-[:To]-(similar:Contract)
@@ -460,7 +563,7 @@ interface AccountFeedback {
 
 export const submitFeedback = async (
   addr: string,
-  feedbackAddrs: Record<string, AccountFeedback>
+  feedbackAddrs: { [key: string]: AccountFeedback }
 ) => {
   const promises: Promise<string[]>[] = [];
   const seenAddresses: Set<string> = new Set(Object.keys(feedbackAddrs));

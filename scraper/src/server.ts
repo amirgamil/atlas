@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import {
   generateRecommendationForAddr,
-  getHotContracts,
+  getHotContracts, getLocalGraph,
   getSimilarContracts,
   submitFeedback,
 } from "./scraper/recommendation";
@@ -47,6 +47,19 @@ app.get("/hot", async (req, res) => {
       return ({ address: r.addr, name })
     }));
     res.json({ results: out });
+  } catch (err: any) {
+    console.log(err);
+    res.status(503).send("Error");
+  }
+});
+
+app.get("/graph", async (req, res) => {
+  try {
+    // @ts-ignore
+    const address: string = req.query.address;
+    console.log("getting graph for user", address);
+    const results = await getLocalGraph(address);
+    res.json({ results });
   } catch (err: any) {
     console.log(err);
     res.status(503).send("Error");

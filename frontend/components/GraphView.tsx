@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useMemo} from "react";
+import React, {useMemo} from "react";
 import Loader from "./Loader";
 import {useAppContext} from "./Context";
 import {useRouter} from "next/router";
@@ -7,18 +7,27 @@ import UhOh from "./UhOh";
 
 import ForceGraph2D from 'react-force-graph-2d';
 
-const VisNetwork = (props: {nodes: any[], links: any[]}) => {
+const VisNetwork = (props: {center: string | string[], nodes: any[], links: any[]}) => {
   console.log(props.nodes)
   return <ForceGraph2D
     graphData={props}
-
+    enableNodeDrag={true}
+    enableZoomInteraction={false}
+    minZoom={1.5}
+    nodeVal={n => Math.log(props.links.filter(l => l.to === n.id).length + 1)}
+    nodeColor={n => n.id === props.center.toLowerCase() ? "#a8eb12" : (n.type === "User" ? "#00b1b5" : "#0087b6")}
+    nodeLabel={n => n.label}
+    linkLabel={l => `${(l.value || 0).toFixed(0.2)} ${l.asset}`}
+    linkOpacity={l => Math.log(l.value + 1)/4 + 1}
+    linkColor={() => "#3f5d88"}
+    onNodeClick={n => window.location = `/graph?address=${n.id}`}
   />
 }
 
 const graph = () => {
   const context = useAppContext();
   const router = useRouter()
-  const user = useMemo(() => router.query.center || context.address, [])
+  const user = useMemo(() => router.query.center || context.address || "", [])
   const { data, error } = useData(`/graph?address=${user}`)
   const nodes = data?.results.nodes || []
   const edges = (data?.results.edges || []).map((e: any) => ({
@@ -31,7 +40,7 @@ const graph = () => {
   if (!data) return <Loader loading />
 
   return (
-    <VisNetwork nodes={nodes} links={edges} />
+    <VisNetwork nodes={nodes} links={edges} center={user} />
   );
 };
 
