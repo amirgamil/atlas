@@ -379,7 +379,7 @@ const getAndRankContracts = async (
 
 export const getLocalGraph = async (addr: string) => {
   let res = await executeReadQuery(`
-    MATCH (user:User { addr: '${addr.toLowerCase()}' })-[r1:To]-(c1)-[r2:To]-(c2)
+    MATCH (user { addr: '${addr.toLowerCase()}' })-[r1:To]-(c1)-[r2:To]-(c2)
     RETURN *
     ORDER BY r2.count DESC
     LIMIT 1
@@ -415,7 +415,7 @@ export const getLocalGraph = async (addr: string) => {
     await createMultipleTx(results);
   }
   res = await executeReadQuery(`
-      MATCH (user:User { addr: '${addr.toLowerCase()}' })-[r1:To]-(c1)-[r2:To]-(c2)
+      MATCH (user { addr: '${addr.toLowerCase()}' })-[r1:To]-(c1)-[r2:To]-(c2)
       RETURN *
       ORDER BY r2.count DESC
       LIMIT 300
