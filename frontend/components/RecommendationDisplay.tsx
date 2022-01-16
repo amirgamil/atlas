@@ -126,12 +126,22 @@ export const ExpandableRecommendation = ({ address, name }: Account) => {
           <h3 className="text-lg">
             <span className="opacity-70 text-base font-normal">{name}</span>
           </h3>
-          <a
-            className="opacity-30 text-sm underline"
-            href={`https://etherscan.io/address/${address}`}
-          >
-            View on Etherscan
-          </a>
+          <p className="opacity-30 text-sm">
+            View on{' '}
+            <a
+              className="text-sm underline"
+              href={`https://etherscan.io/address/${address}`}
+            >
+               Etherscan
+            </a>
+            {' '}or{' '}
+            <a
+              className="text-sm underline"
+              href={`/graph?address=${address}`}
+            >
+              the graph
+            </a>
+          </p>
         </div>
       </div>
       <div className="ml-8">

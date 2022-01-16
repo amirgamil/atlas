@@ -391,7 +391,7 @@ export const getLocalGraph = async (addr: string) => {
       params: [
         {
           fromBlock: "0x0",
-          fromAddress: addr,
+          fromAddress: addr.toLowerCase(),
           category: ["external", "internal", "token"],
           maxCount: "0x14",
         },
@@ -403,7 +403,7 @@ export const getLocalGraph = async (addr: string) => {
       params: [
         {
           fromBlock: "0x0",
-          toAddress: addr,
+          toAddress: addr.toLowerCase(),
           category: ["external", "internal", "token"],
           maxCount: "0x14",
         },
@@ -411,7 +411,7 @@ export const getLocalGraph = async (addr: string) => {
     };
     const [r1, r2] = await Promise.all([getTransactionsWithPagination(payload1), getTransactionsWithPagination(payload2)]);
     const results = [...r1, ...r2]
-    console.log("fetched transactions for user: ", results);
+    console.log("fetched transactions for address: ", results);
     await createMultipleTx(results);
   }
   res = await executeReadQuery(`
