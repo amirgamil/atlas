@@ -1,24 +1,24 @@
 {
-    "compilerOptions": {
-        /* Language and Environment */
-        "target": "es2016" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
-        "module": "commonjs" /* Specify what module code is generated. */,
-        "rootDir": "./" /* Specify the root folder within your source files. */,
-        "moduleResolution": "node" /* Specify how TypeScript looks up a file from a given module specifier. */,
-        /* JavaScript Support */
-        "allowJs": true /* Allow JavaScript files to be a part of your program. Use the `checkJS` option to get errors from these files. */,
-        // "checkJs": true,                                  /* Enable error reporting in type-checked JavaScript files. */
-        // "maxNodeModuleJsDepth": 1,                        /* Specify the maximum folder depth used for checking JavaScript files from `node_modules`. Only applicable with `allowJs`. */
-        /* Emit */
-        "esModuleInterop": true /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables `allowSyntheticDefaultImports` for type compatibility. */,
-        "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
-        "strict": true /* Enable all strict type-checking options. */,
-        "noImplicitAny": true /* Enable error reporting for expressions and declarations with an implied `any` type.. */,
-        "skipLibCheck": true /* Skip type checking all .d.ts files. */,
-        "outDir": "dist/",
-        "resolveJsonModule": true,
-    },
-    "compileonsave": true,
-    "exclude": ["**/node_modules", "build", "jest"],
-    "include": ["src"]
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "es2016" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
+    "module": "commonjs" /* Specify what module code is generated. */,
+    "rootDir": "./" /* Specify the root folder within your source files. */,
+    "moduleResolution": "node" /* Specify how TypeScript looks up a file from a given module specifier. */,
+    /* JavaScript Support */
+    "allowJs": true /* Allow JavaScript files to be a part of your program. Use the `checkJS` option to get errors from these files. */,
+    // "checkJs": true,                                  /* Enable error reporting in type-checked JavaScript files. */
+    // "maxNodeModuleJsDepth": 1,                        /* Specify the maximum folder depth used for checking JavaScript files from `node_modules`. Only applicable with `allowJs`. */
+    /* Emit */
+    "esModuleInterop": true /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables `allowSyntheticDefaultImports` for type compatibility. */,
+    "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
+    "strict": true /* Enable all strict type-checking options. */,
+    "noImplicitAny": true /* Enable error reporting for expressions and declarations with an implied `any` type.. */,
+    "skipLibCheck": true /* Skip type checking all .d.ts files. */,
+    "outDir": "dist/",
+    "resolveJsonModule": true
+  },
+  "compileonsave": true,
+  "exclude": ["**/node_modules", "build", "jest", "src/scripts"],
+  "include": ["src"]
 }

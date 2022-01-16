@@ -1,45 +1,47 @@
 {
-    "name": "mateis",
-    "version": "1.0.0",
-    "description": "Fire web3 recommendation",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "lint": "eslint .",
-        "start": "nodemon src/server.ts",
-        "neo4j": "ts-node src/neo4jWrapper/index.ts",
-        "scrape": "ts-node src/scraper/scraper.ts",
-        "disassemble": "ts-node src/modularity/index.ts",
-        "compare": "ts-node src/scraper/recommendation.ts"
-    },
-    "author": "",
-    "license": "MIT",
-    "dependencies": {
-        "@neo4j/graphql": "^2.5.5",
-        "@types/js-levenshtein": "^1.1.1",
-        "apollo-server": "^3.6.1",
-        "axios": "^0.24.0",
-        "bottleneck": "^2.19.5",
-        "cors": "^2.8.5",
-        "dotenv": "^10.0.0",
-        "es6-promise-pool": "^2.5.0",
-        "ethers": "^5.5.3",
-        "express": "^4.17.2",
-        "graphql": "^16.2.0",
-        "js-levenshtein": "^1.1.6",
-        "neo4j-driver": "^4.4.1"
-    },
-    "devDependencies": {
-        "@types/express": "^4.17.13",
-        "@types/node": "^17.0.8",
-        "eslint": "^8.6.0",
-        "eslint-plugin-react": "^7.28.0",
-        "nodemon": "^2.0.15",
-        "ts-node": "^10.4.0",
-        "tslib": "^2.2.0",
-        "typescript": "^4.4.4"
-    },
-    "engines": {
-        "node": ">=16.13.0 <17",
-        "npm": ">=8.1.1 <8.2"
-    }
+  "name": "mateis",
+  "version": "1.0.0",
+  "description": "Fire web3 recommendation",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint .",
+    "start": "nodemon src/server.ts",
+    "neo4j": "ts-node src/neo4jWrapper/index.ts",
+    "scrape": "ts-node src/scraper/scraper.ts",
+    "disassemble": "ts-node src/modularity/index.ts",
+    "compare": "ts-node src/scraper/recommendation.ts",
+    "build": "tsc --build"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@neo4j/graphql": "^2.5.5",
+    "@types/js-levenshtein": "^1.1.1",
+    "apollo-server": "^3.6.1",
+    "axios": "^0.24.0",
+    "bottleneck": "^2.19.5",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "es6-promise-pool": "^2.5.0",
+    "ethers": "^5.5.3",
+    "express": "^4.17.2",
+    "graphql": "^16.2.0",
+    "js-levenshtein": "^1.1.6",
+    "neo4j-driver": "^4.4.1",
+    "serve-static": "^1.14.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/node": "^17.0.8",
+    "eslint": "^8.6.0",
+    "eslint-plugin-react": "^7.28.0",
+    "nodemon": "^2.0.15",
+    "ts-node": "^10.4.0",
+    "tslib": "^2.2.0",
+    "typescript": "^4.4.4"
+  },
+  "engines": {
+    "node": ">=16.13.0 <17",
+    "npm": ">=8.1.1 <8.2"
+  }
 }

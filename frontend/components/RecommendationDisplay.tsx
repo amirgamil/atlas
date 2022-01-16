@@ -5,12 +5,13 @@ import { fetcher } from "../hooks/useData";
 import Loader from "./Loader";
 
 export interface Account {
-  address: string;
-  name: string;
+  address?: string;
+  name?: string;
+  addr?: string;
 }
 
 interface Props {
-  props: Account;
+  account: Account;
   setFeedback: (feedback: Account, isGoodRecommendation: boolean) => void;
 }
 
@@ -44,15 +45,27 @@ const StyledButton = styled.button<{ isSelected: boolean }>`
   }
 `;
 
+const hardcodedNames: Record<string, string> = {
+  "0xd569d3cce55b71a8a3f3c418c329a66e5f714431": "Juicebox: Terminal V1",
+  "0xefe0fed2b728b9711030e7643e98477957df9809": "Orion",
+};
+
+const hardcoded = (addr: string) => {
+  return hardcodedNames[addr] ?? addr;
+};
+
 export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
   const [isGood, setIsGood] = React.useState<boolean | undefined>(undefined);
+
+  console.log(props);
+
   return (
     <div className="glass my-6 py-2 px-4 w-full flex">
       <div className="my-auto mr-4">
         <Avatar
           size={30}
           variant="marble"
-          name={props.name}
+          name={account.name}
           colors={["#3f5d88", "#0087b6", "#00b1b5", "#00d47f", "#a8eb12"]}
         />
       </div>
@@ -62,9 +75,9 @@ export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
         </h3>
         <a
           className="opacity-50 text-sm"
-          href={`https://etherscan.io/address/${props.addr}`}
+          href={`https://etherscan.io/address/${account.addr}`}
         >
-          {props.name ? props.name : props.addr}
+          {props.addr !== props.name ? props.name : hardcoded(props.addr!)}
         </a>
         <div className="ml-auto">
           <StyledButton
@@ -72,7 +85,7 @@ export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
             className="m-1"
             onClick={() => {
               setIsGood(true);
-              setFeedback(props, true);
+              setFeedback(account, true);
             }}
           >
             👍
@@ -82,7 +95,7 @@ export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
             className="m-1"
             onClick={() => {
               setIsGood(false);
-              setFeedback(props, false);
+              setFeedback(account, false);
             }}
           >
             👎
@@ -97,13 +110,13 @@ const fetchRelatedFn = async (addr: string) => {
   return await fetcher(`/similar-neighbors?address=${addr}`);
 };
 
-export const ExpandableRecommendation = ({ address, name }: Account) => {
+export const ExpandableRecommendation = ({ addr: address, name }: Account) => {
   const [children, setChildren] = useState<Account[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const fetchChildren = useCallback(async () => {
     setLoading(true);
-    const recs = await fetchRelatedFn(address);
+    const recs = await fetchRelatedFn(address!);
     setChildren(recs);
     setLoading(false);
   }, [address]);
@@ -119,10 +132,7 @@ export const ExpandableRecommendation = ({ address, name }: Account) => {
             colors={["#3f5d88", "#0087b6", "#00b1b5", "#00d47f", "#a8eb12"]}
           />
         </div>
-        <div
-          style={{ wordWrap: "break-word" }}
-          className="mr-3"
-        >
+        <div style={{ wordWrap: "break-word" }} className="mr-3">
           <h3 className="text-lg">
             <span className="opacity-70 text-base font-normal">{name}</span>
           </h3>

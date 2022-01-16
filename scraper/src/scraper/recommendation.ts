@@ -7,10 +7,10 @@ import {
 } from "../neo4jWrapper/index";
 import { Response, AccountResponse } from "./types";
 import { Payload } from "./types";
-import dotenv from "dotenv";
 import { converter } from "../util";
 import Bottleneck from "bottleneck";
 import getName, { getAccountResponse } from "../names";
+import dotenv from "dotenv";
 import { batchCompare } from "../modularity/index";
 import type { Record as Neo4jRecord } from "neo4j-driver";
 import {Record} from "neo4j-driver";
@@ -18,7 +18,7 @@ import {Record} from "neo4j-driver";
 dotenv.config({
   path: "./src/.env",
 });
-
+console.log(process.env.ETHERSCAN_KEY);
 interface DistAccount {
   distance: number;
   account: Account;
