@@ -16,10 +16,9 @@ interface Account {
 const Explore: NextPage = () => {
   const { data, error } = useData('/hot')
 
-  if (error) return <UhOh>Failed to hot contracts</UhOh>
+  if (error) return <UhOh>Failed to load hot contracts</UhOh>
   if (!data) return <Loader loading />
 
-  console.log(data.results)
   return (
     <div className={styles.container}>
       <Nav />

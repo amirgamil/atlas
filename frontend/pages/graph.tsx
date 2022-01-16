@@ -2,6 +2,7 @@ import dynamic from "next/dynamic";
 import React from "react";
 import { useAppContext } from "../components/Context";
 import SafeHydrate from "../components/SafeHydrate";
+import { useRouter } from 'next/router'
 const Graph = dynamic(() => import("../components/GraphView"), { ssr: false });
 
 import styles from "../styles/Home.module.css";
@@ -10,13 +11,11 @@ import Nav from "../components/Nav";
 import Head from "next/head";
 
 const UserGraph = () => {
-  const context = useAppContext();
-  console.log("address: ", context.address);
   return (
     <div className={styles.container}>
       <Nav />
       <Head>
-        <title>Atlas | Discover Web3</title>
+        <title>Atlas | The Graph</title>
         <meta name="description" content="The Web3 Recommendation Engine" />
         <link rel="icon" href="/logo.png" />
         <link
@@ -26,9 +25,10 @@ const UserGraph = () => {
       </Head>
       <main className={`overflow-y-auto ${styles.main}`}>
         <div className="flex">
-          <div className="mx-auto mt-4">
+          <div className="mx-auto mt-20 w-1/2 h-full">
+            <h1 className="text-gradient text-4xl glow">The Graph</h1>
             <SafeHydrate>
-              <Graph user={"0xa335ade338308b8e071cf2c8f3ca5e50f6563c60"} />
+              <Graph />
             </SafeHydrate>
           </div>
         </div>

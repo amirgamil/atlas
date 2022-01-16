@@ -132,3 +132,11 @@ button.secondary:hover,
   transform: translate3d(0, 0, -500px);
   backface-visibility: hidden;
 }
+
+canvas {
+  border: 1px solid #ffffff22;
+  border-radius: 5px;
+  margin-top: 4rem;
+  width: 100% !important;
+  height: 100% !important;
+}
