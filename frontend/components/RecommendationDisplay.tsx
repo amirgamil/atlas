@@ -54,10 +54,10 @@ const hardcoded = (addr: string) => {
   return hardcodedNames[addr] ?? addr;
 };
 
-export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
+export const Recommendation: React.VFC<Props> = ({ account, setFeedback }) => {
   const [isGood, setIsGood] = React.useState<boolean | undefined>(undefined);
 
-  console.log(props);
+  console.log(account);
 
   return (
     <div className="glass my-6 py-2 px-4 w-full flex">
@@ -77,7 +77,9 @@ export const Recommendation: React.VFC<Props> = ({ props, setFeedback }) => {
           className="opacity-50 text-sm"
           href={`https://etherscan.io/address/${account.addr}`}
         >
-          {props.addr !== props.name ? props.name : hardcoded(props.addr!)}
+          {account.addr !== account.name
+            ? account.name
+            : hardcoded(account.addr!)}
         </a>
         <div className="ml-auto">
           <StyledButton

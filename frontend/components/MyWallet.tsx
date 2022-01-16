@@ -60,8 +60,7 @@ export const MyWallet: React.FC<Props> = ({ address }) => {
               //@ts-ignore
               <Recommendation
                 key={i}
-                // @ts-ignore
-                props={el}
+                account={el}
                 // @ts-ignore
                 setFeedback={setAccountFeedback}
               />
